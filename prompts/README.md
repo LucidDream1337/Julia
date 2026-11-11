@@ -5,6 +5,7 @@ Dieses Paket erweitert dein Projekt (`programming-learning-agent.zip`) um:
 1. **Programmieren lernen und anwenden** (W3Schools, alle dort angebotenen Sprachen, plus Code-Ausführung in einer Sandbox)
 2. **Lokale Wikipedia-Wissensbasis** aus den offiziellen Dumps
 3. **Kontrollierte Selbstverbesserung** in regelmäßigen Abständen
+4. **Pflanzen-Enzyklopädie** aus plantatlas.bio als private lokale Sicherungskopie inklusive Bildern
 
 ## Aufbau
 
@@ -16,6 +17,7 @@ Dieses Paket erweitert dein Projekt (`programming-learning-agent.zip`) um:
 | `P2-code-werkstatt.md` | Sandbox, Sprach-Runner, Übungen, Kompetenzmatrix (6 Aufgaben) |
 | `P3-wikipedia-wissensdatenbank.md` | Dump-Download, SQLite + FTS5, Vektorindex, Hybridsuche, Updates (7 Aufgaben) |
 | `P4-selbstverbesserung.md` | Eval, Telemetrie, Experimente mit Rollback, Berichte, Kill-Switch (6 Aufgaben) |
+| `P5-pflanzen-enzyklopaedie.md` | plantatlas.bio: Archiv mit Bildern, Wissensbasis, Backup, Offline-Spiegel (7 Aufgaben) |
 
 Jede Projektdatei enthält zuerst den **Projekt-Prompt** und danach die **Aufgaben-Prompts** in Ausführungsreihenfolge. Jeder Prompt steht in einem `text`-Block und kann direkt kopiert werden.
 
@@ -32,7 +34,7 @@ P0 -> P1 -> P2 ->  P4
         \-> P3 -/
 ```
 
-P2 und P3 sind voneinander unabhängig. Vermeide aber, beide gleichzeitig GPU-lastig laufen zu lassen. P4 kommt zuletzt, weil es Messwerte aus den anderen Projekten braucht.
+P5 hängt nur von P0 ab und kann jederzeit eingeschoben werden. P2 und P3 sind voneinander unabhängig. Vermeide aber, beide gleichzeitig GPU-lastig laufen zu lassen. P4 kommt zuletzt, weil es Messwerte aus den anderen Projekten braucht.
 
 ## Freigabe-Gates (der Agent stoppt hier und wartet auf dich)
 
@@ -42,6 +44,7 @@ P2 und P3 sind voneinander unabhängig. Vermeide aber, beide gleichzeitig GPU-la
 | G2 | P2 / T2.4 | Sandbox-Sicherheit ist abgenommen, `run_code` darf aktiviert werden |
 | G3 | P4 / T4.6 | Selbstverbesserung von `dry-run` auf `apply` schalten |
 | G4 | P4 / T4.5 | Ein vom System vorgeschlagener Code-Patch wird übernommen |
+| G5 | P5 / T5.1–T5.2 | Nur bei Stopp-Bedingung (robots.txt sperrt, Zugangsbeschränkung, geänderter Nutzungshinweis): Agent hält an |
 
 ## Was du wissen solltest (ehrliche Grenzen)
 
