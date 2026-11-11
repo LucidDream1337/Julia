@@ -25,7 +25,7 @@ def chat(messages: list[dict], temperature: float = 0.2, num_predict: int | None
             if resp.status_code == 404 and "not found" in resp.text.lower():
                 raise OllamaError(
                     f"Modell '{settings.ollama_model}' fehlt in Ollama. Installieren mit: "
-                    f"docker exec programming-school-ollama ollama pull {settings.ollama_model}"
+                    f"docker exec julia-school-ollama ollama pull {settings.ollama_model}"
                 )
             resp.raise_for_status()
             content = resp.json().get("message", {}).get("content", "")
@@ -49,7 +49,9 @@ def list_models() -> list[str]:
 
 
 def model_available(wanted: str, installed: list[str]) -> bool:
-    """'nomic-embed-text' passt auch auf 'nomic-embed-text:latest'."""
+    """'nomic-embed-text' passt auch auf 'nomic-embed-text:latest'. Groß-/Kleinschreibung egal."""
+    wanted = wanted.strip().lower()
+    installed = [name.lower() for name in installed]
     if wanted in installed:
         return True
     if ":" not in wanted:

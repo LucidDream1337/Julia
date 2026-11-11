@@ -34,7 +34,7 @@ class OllamaEmbedder:
                 if "model" in text and "not found" in text:
                     raise OllamaError(
                         f"Embedding-Modell '{self._model}' fehlt in Ollama. "
-                        f"Installieren mit: docker exec programming-school-ollama "
+                        f"Installieren mit: docker exec julia-school-ollama "
                         f"ollama pull {self._model}"
                     )
                 # Sehr alte Ollama-Version ohne /api/embed -> Legacy-Endpunkt.

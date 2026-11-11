@@ -94,9 +94,9 @@ USER_AGENT_TOKEN = "ProgrammingSchoolLearningBot"
 def load_settings() -> Settings:
     return Settings(
         ollama_base_url=_str("OLLAMA_BASE_URL", "http://ollama:11434").rstrip("/"),
-        ollama_model=_str("OLLAMA_MODEL", "llama3.2:3b"),
+        ollama_model=_str("OLLAMA_MODEL", "qwen2.5:7b"),
         ollama_embedding_model=_str("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text"),
-        ollama_num_ctx=_int("OLLAMA_NUM_CTX", 4096, minimum=1024),
+        ollama_num_ctx=_int("OLLAMA_NUM_CTX", 8192, minimum=1024),
         ollama_timeout=_float("OLLAMA_TIMEOUT_SECONDS", 300.0, minimum=10.0),
         qdrant_url=_str("QDRANT_URL", "http://qdrant:6333").rstrip("/"),
         qdrant_api_key=_str("QDRANT_API_KEY", ""),

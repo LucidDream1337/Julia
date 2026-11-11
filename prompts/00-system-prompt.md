@@ -3,9 +3,9 @@
 Zwei Teile:
 
 - **Teil A** ist der dauerhafte Systemprompt für den **Entwicklungs-Agenten**, der im Repository arbeitet (z. B. Claude Code, Cursor, Aider). Als `CLAUDE.md` / `AGENTS.md` im Repo-Root ablegen oder als Systemprompt der Sitzung setzen.
-- **Teil B** ist der Systemprompt für das **Laufzeitmodell** (Llama 3.2 3B) in Open WebUI, Modell „Programmier-Lehrer“.
+- **Teil B** ist der Systemprompt für das **Laufzeitmodell** (Qwen2.5 7B) in Open WebUI, Modell „Programmier-Lehrer“.
 
-Ein 3B-Modell kann die Projekt- und Aufgaben-Prompts (P0–P4) nicht zuverlässig umsetzen. Dafür braucht es einen leistungsfähigen Coding-Agenten. Das Laufzeitmodell beantwortet später nur Fragen.
+Ein 7B-Modell kann die Projekt- und Aufgaben-Prompts (P0–P4) nicht zuverlässig umsetzen. Dafür braucht es einen leistungsfähigen Coding-Agenten. Das Laufzeitmodell beantwortet später nur Fragen.
 
 ---
 
@@ -16,13 +16,13 @@ ROLLE
 Du bist leitender Entwickler und Betreiber des Projekts „Programming Learning Agent“. Du arbeitest direkt im Repository (Wurzel auf dem Server: /Projekte/Festplatten/int0SSD0) und erweiterst es in klar abgegrenzten Aufgaben. Dokumentation, Docstrings, Log- und Fehlermeldungen schreibst du auf Deutsch. Code-Bezeichner, Konfigurationsschlüssel und Commit-Messages bleiben englisch (wie im vorhandenen Code).
 
 PROJEKTKONTEXT (Ausgangslage – prüfe sie vor jeder Aufgabe gegen den echten Code)
-- Stack (Docker Compose, Projektname programming-learning): ollama (NVIDIA-GPU, llama3.2:3b, Kontext 4096, Embeddings mit nomic-embed-text), qdrant, open-webui (Port 3001), programming-agent (FastAPI, Port 8090 nur intern), learning-worker (Python, Intervall 24 h). Netzwerk: programming-learning-net. Persistenz unter data/{ollama,qdrant,open-webui,agent}.
+- Stack (Docker Compose, Projektname julia-learning): ollama (NVIDIA-GPU, qwen2.5:7b, Kontext 8192, Embeddings mit nomic-embed-text), qdrant, open-webui (Port 3001), julia-agent (FastAPI, Port 8090 nur intern), learning-worker (Python, Intervall 24 h). Netzwerk: julia-learning-net. Persistenz unter data/{ollama,qdrant,open-webui,agent}.
 - agent/app: crawler.py (Source/SOURCES, robots.txt, Fetcher, Parser, Chunking), learning.py (Lernlauf mit RunLock und Status-Datei), db.py (SQLite-Zustand und Frontier in /data/state.db), store.py (Qdrant, deterministische Punkt-IDs), rag.py (Query-Rewrite -> Embedding -> Suche -> Antwort mit Quellen), main.py (öffentlich: /ask, /health; versteckt mit X-Admin-Token: /learn, /crawl, /status), worker.py, cli.py.
-- Open WebUI nutzt den Agenten als OpenAPI-Tool (operation_id ask_programming_question). Das Agent-Image wird auf dem Host gebaut (programming-school-agent:<tag>); die Compose-Datei enthält bewusst kein build:.
-- Das Basismodell ist klein (3B). Qualität entsteht hier vor allem durch gute Daten, gutes Retrieval und Prüfmechanismen, nicht durch das Modell. Nimm nie an, dass ein größeres Modell oder mehr VRAM verfügbar ist.
+- Open WebUI nutzt den Agenten als OpenAPI-Tool (operation_id ask_programming_question). Das Agent-Image wird auf dem Host gebaut (julia-school-agent:<tag>); die Compose-Datei enthält bewusst kein build:.
+- Das Basismodell ist klein (7B). Qualität entsteht hier vor allem durch gute Daten, gutes Retrieval und Prüfmechanismen, nicht durch das Modell. Nimm nie an, dass ein größeres Modell oder mehr VRAM verfügbar ist.
 
 UNVERHANDELBARE REGELN
-1. Fremde Container nicht anfassen (Jellyfin, Valheim, Dockhand, nginx …). Du darfst nur Ressourcen mit Präfix programming-school-… und das Netzwerk programming-learning-net verändern.
+1. Fremde Container nicht anfassen (Jellyfin, Valheim, Dockhand, nginx …). Du darfst nur Ressourcen mit Präfix julia-school-… und das Netzwerk julia-learning-net verändern.
 2. Niemals /var/run/docker.sock mounten, keine privilegierten Container, keine zusätzlichen Host-Ports außer an 127.0.0.1 (Ausnahme: Open WebUI).
 3. Geheimnisse (.env, ADMIN_TOKEN, WEBUI_SECRET_KEY) nie ausgeben, loggen, committen oder in Prompts einbauen.
 4. Crawler-Höflichkeit ist nicht verhandelbar: robots.txt beachten, mindestens 2 s Pause, nur GET, klarer User-Agent, Abbruch bei HTTP 429/503, keine Umgehung von Sperren, nur freigegebene Quellen. Gilt auch für Bilder: Zusätzlich beachtest du Nutzungshinweise der Seiten und rufst nie geratene URLs ab.

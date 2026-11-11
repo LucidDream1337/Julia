@@ -66,7 +66,7 @@ AUFGABE T0.3 – ROUTER UND API
 
 1. POST /ask: neues optionales Feld scope ("auto" | "programming" | "wikipedia", Default "auto"). Die Antwort wird um corpus und attribution (Lizenz-/Quellenhinweis) erweitert. Alle bestehenden Felder bleiben unverändert.
 2. Auto-Router: zuerst regelbasiert (Programmiersprachen-Namen, Code-Marker wie "def ", "SELECT", Dateiendungen, Wörter wie "Fehler", "Syntax"), nur bei Unsicherheit ein kurzer LLM-Aufruf mit temperature 0. Ist ein Corpus nicht verfügbar, wird auf programming zurückgefallen und das in der Antwort vermerkt.
-3. Formuliere summary und description des OpenAPI-Eintrags so, dass ein 3B-Modell das Tool korrekt wählt: kurz, mit je einem Positiv- und Negativbeispiel pro scope.
+3. Formuliere summary und description des OpenAPI-Eintrags so, dass ein 7B-Modell das Tool korrekt wählt: kurz, mit je einem Positiv- und Negativbeispiel pro scope.
 4. Ist ein explizit gewählter Corpus leer oder nicht verfügbar: HTTP 503 mit klarer Meldung und nächstem Schritt.
 5. Tests: Tabelle mit mindestens 30 Beispielfragen (deutsch und englisch) und erwartetem scope.
 

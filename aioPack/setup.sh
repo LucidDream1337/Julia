@@ -14,7 +14,11 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE="julia-school-agent:1.0"
 ENV_FILE="$PROJECT_DIR/.env"
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yaml"
+<<<<<<< HEAD
 OUR_CONTAINERS=(Julia-school-ollama Julia-school-ollama-models Julia-school-qdrant Julia-school-agent Julia-school-worker Julia-school-webui)
+=======
+OUR_CONTAINERS=(julia-school-ollama julia-school-ollama-models julia-school-qdrant julia-school-agent julia-school-worker julia-school-webui)
+>>>>>>> 3e19556 (rebuild)
 
 DO_BUILD=1
 DO_UP=0
@@ -71,7 +75,11 @@ fi
 for c in "${OUR_CONTAINERS[@]}"; do
   if docker container inspect "$c" >/dev/null 2>&1; then
     project="$(docker container inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$c" 2>/dev/null || true)"
+<<<<<<< HEAD
     if [ "$project" = "Julia-learning" ]; then
+=======
+    if [ "$project" = "julia-learning" ]; then
+>>>>>>> 3e19556 (rebuild)
       ok "Container '$c' gehört bereits zu diesem Stack (wird beim Deploy aktualisiert)"
     else
       fail "Ein Container namens '$c' existiert bereits (Projekt: '${project:-unbekannt}'). Entfernen oder umbenennen: docker rm -f $c"
@@ -80,7 +88,11 @@ for c in "${OUR_CONTAINERS[@]}"; do
 done
 
 LISTENING="$(ss -ltn 2>/dev/null | awk '{print $4}' || true)"
+<<<<<<< HEAD
 if echo "$LISTENING" | grep -qE '[:.]11434$' && ! docker container inspect Julia-school-ollama >/dev/null 2>&1; then
+=======
+if echo "$LISTENING" | grep -qE '[:.]11434$' && ! docker container inspect julia-school-ollama >/dev/null 2>&1; then
+>>>>>>> 3e19556 (rebuild)
   warn "Port 11434 ist belegt (läuft Ollama bereits auf dem Host?). OLLAMA_HOST_PORT in .env ändern."
 fi
 
@@ -151,7 +163,11 @@ if [ "$DO_UP" -eq 1 ]; then
   step "Stack starten"
   "${COMPOSE[@]}" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d
   ok "Stack gestartet. Modelle werden im Hintergrund geladen:"
+<<<<<<< HEAD
   echo "     docker logs -f Julia-school-ollama-models"
+=======
+  echo "     docker logs -f julia-school-ollama-models"
+>>>>>>> 3e19556 (rebuild)
 fi
 
 cat <<MSG
@@ -169,11 +185,19 @@ Fertig. Nächste Schritte:
             ${COMPOSE[*]} --env-file .env up -d
 
   2) Warten, bis die Modelle geladen sind (Container 'ollama-models' endet mit Exit 0):
+<<<<<<< HEAD
        docker logs -f Julia-school-ollama-models
        docker exec Julia-school-ollama ollama list
 
   3) Ersten Lernlauf starten und Open WebUI einrichten – siehe README.md:
        docker exec Julia-school-agent python -m app.cli learn --max-pages 10
+=======
+       docker logs -f julia-school-ollama-models
+       docker exec julia-school-ollama ollama list
+
+  3) Ersten Lernlauf starten und Open WebUI einrichten – siehe README.md:
+       docker exec julia-school-agent python -m app.cli learn --max-pages 10
+>>>>>>> 3e19556 (rebuild)
 
   Open WebUI:  http://<server-ip>:${WEBUI_PORT_VALUE}
 MSG

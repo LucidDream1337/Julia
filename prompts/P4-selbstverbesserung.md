@@ -11,7 +11,7 @@ ZIEL
 In regelmäßigen Abständen soll sich das System messbar verbessern, ohne sich selbst zu gefährden.
 
 WAS „BESSER WERDEN“ HIER HEISST (ehrlich)
-Die Modellgewichte bleiben unverändert (kein Fine-Tuning). Verbessert werden: (1) Daten, indem Lücken erkannt und gezielt gefüllt werden, (2) Retrieval-Parameter und Prompts, (3) Glossar und Synonyme, (4) Übungsschwerpunkte, (5) optional und nur als Vorschlag: Code. Bei einem 3B-Modell kommt der größte Gewinn aus Datenabdeckung und Retrieval, nicht aus „klügerem Denken“.
+Die Modellgewichte bleiben unverändert (kein Fine-Tuning). Verbessert werden: (1) Daten, indem Lücken erkannt und gezielt gefüllt werden, (2) Retrieval-Parameter und Prompts, (3) Glossar und Synonyme, (4) Übungsschwerpunkte, (5) optional und nur als Vorschlag: Code. Bei einem 7B-Modell kommt der größte Gewinn aus Datenabdeckung und Retrieval, nicht aus „klügerem Denken“.
 
 AUTONOMIESTUFEN
 - Stufe A (autonom innerhalb Leitplanken, mit automatischem Rollback): Retrieval-Parameter (Whitelist), Prompt-Varianten aus einem versionierten Katalog, Crawl-/Embedding-Priorisierung, Glossar, Übungsschwerpunkte.
@@ -47,7 +47,7 @@ AUFGABE T4.1 – GOLDEN-SET UND EVAL-HARNESS
 
 1. Verzeichnis eval/golden/*.jsonl, Schema: id, corpus, language, question, question_language, expected_urls oder expected_titles, must_contain_keywords, type (retrieval | answer | code | safety), split (dev | test), origin (manual | synthetic).
 2. Lege ein Seed-Set an: eigene Formulierungen, nicht aus W3Schools-Texten abgeschrieben. Mindestens 20 Fragen je Kernsprache (Python, JavaScript, SQL, Java, C/C++/C# gemischt, HTML/CSS), 30 Wikipedia-Fragen, 10 Sicherheitsfälle (Prompt-Injection in Auszügen, Fragen außerhalb des Wissens -> ehrliche Absage). Kennzeichne synthetische Fragen und weise darauf hin, dass der Betreiber das Set mit eigenen Fragen ergänzen sollte.
-3. Metriken: Hit@k, MRR, Keyword-Abdeckung der Antwort, Latenz, Code-pass-rate (aus P2, falls aktiv). LLM-als-Richter höchstens als Zusatzsignal, nie allein (ein 3B-Modell ist ein schwacher Richter).
+3. Metriken: Hit@k, MRR, Keyword-Abdeckung der Antwort, Latenz, Code-pass-rate (aus P2, falls aktiv). LLM-als-Richter höchstens als Zusatzsignal, nie allein (ein 7B-Modell ist ein schwacher Richter).
 4. `cli eval --corpus programming --split dev` erzeugt JSON- und Markdown-Report. Deterministisch: temperature 0, feste Reihenfolge, feste Seeds.
 5. Baseline einfrieren unter eval/baselines/<datum>.json und Vergleichsbefehl `cli eval --compare <baseline>`.
 6. Tests mit Fake-Retriever für die Metrikberechnung.
@@ -103,7 +103,7 @@ FERTIG, WENN: Tests mit Fake-Telemetrie belegen Ableitung und Priorisierung; Pro
 ```text
 AUFGABE T4.5 – CODE-VERBESSERUNGSVORSCHLÄGE (OPTIONAL, STANDARD: AUS)
 
-Hinweis: Ein 3B-Modell schreibt nur eingeschränkt brauchbare Patches. Baue diese Funktion deshalb als Vorschlags-Pipeline mit harter Qualitätsprüfung und standardmäßig deaktiviert (PROPOSALS_ENABLED=false). Wenn du während der Umsetzung feststellst, dass der Nutzen fehlt, dokumentiere das und empfiehl, die Aufgabe zu streichen.
+Hinweis: Ein 7B-Modell schreibt nur eingeschränkt brauchbare Patches. Baue diese Funktion deshalb als Vorschlags-Pipeline mit harter Qualitätsprüfung und standardmäßig deaktiviert (PROPOSALS_ENABLED=false). Wenn du während der Umsetzung feststellst, dass der Nutzen fehlt, dokumentiere das und empfiehl, die Aufgabe zu streichen.
 
 1. Arbeit ausschließlich auf einer Kopie des Quellcodes (data/agent/workspace/), nie am laufenden Code.
 2. Eingaben: Telemetrie-Fehler, Fehlerlogs, Eval-Schwächen. Ausgabe je Vorschlag: data/agent/proposals/<id>/{patch.diff, report.md, eval-diff.json}.

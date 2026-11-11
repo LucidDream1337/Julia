@@ -1,4 +1,4 @@
-"""RAG-Pipeline: Frage -> (Suchanfrage) -> Embedding -> Qdrant -> Kontext -> Llama."""
+"""RAG-Pipeline: Frage -> (Suchanfrage) -> Embedding -> Qdrant -> Kontext -> Sprachmodell."""
 from __future__ import annotations
 
 import logging

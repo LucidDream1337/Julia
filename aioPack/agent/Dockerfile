@@ -1,6 +1,6 @@
 # Programming Learning Agent – Image für API (FastAPI) und Learning Worker.
 # Bauen (auf dem Linux-Host, NICHT in Dockhand):
-#   docker build -t programming-school-agent:1.0 /Projekte/Festplatten/int0SSD0/agent
+#   docker build -t julia-school-agent:1.0 /Projekte/Festplatten/int0SSD0/agent
 FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \

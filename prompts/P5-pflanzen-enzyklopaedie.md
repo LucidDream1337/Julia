@@ -122,7 +122,7 @@ FERTIG, WENN: Tests grün und `cli ask --scope plants "..."` liefert auf Fixture
 AUFGABE T5.5 – MEDIEN-AUSLIEFERUNG UND BILDER IN ANTWORTEN
 
 1. Antwort-Schema: bei Pflanzenantworten Feld images (Liste mit image_id, alt, plant, source_url). Die Bildauslieferung erfolgt nur aus der lokalen Kopie.
-2. Medien-Endpunkt: GET /plants/media/<sha256> (nur Hashes aus dem Manifest, kein Dateisystem-Pfad aus Nutzereingaben, kein Directory-Listing, Content-Type fest, Cache-Header). Standardmäßig ohne Host-Port. Gib dem Betreiber zwei dokumentierte Optionen: (a) Ausliefern über einen eigenen kleinen Read-Only-Container programming-school-plants-media mit LAN-Port, (b) nur lokal an 127.0.0.1. Der Betreiber entscheidet, der Agent öffnet keinen LAN-Port selbst.
+2. Medien-Endpunkt: GET /plants/media/<sha256> (nur Hashes aus dem Manifest, kein Dateisystem-Pfad aus Nutzereingaben, kein Directory-Listing, Content-Type fest, Cache-Header). Standardmäßig ohne Host-Port. Gib dem Betreiber zwei dokumentierte Optionen: (a) Ausliefern über einen eigenen kleinen Read-Only-Container julia-school-plants-media mit LAN-Port, (b) nur lokal an 127.0.0.1. Der Betreiber entscheidet, der Agent öffnet keinen LAN-Port selbst.
 3. Open WebUI soll Bilder in Antworten als Markdown anzeigen können. Prüfe und dokumentiere, welche URL der Browser des Nutzers erreichen muss (Docker-Hostnamen funktionieren im Browser nicht), und baue die Basis-URL als ENV (PLANTS_MEDIA_BASE_URL).
 4. Keine Auslieferung nach außen: weder Reverse-Proxy-Konfiguration noch öffentliche Ports anlegen.
 5. Tests: Pfad-Traversal-Versuche, unbekannter Hash, falscher Content-Type.

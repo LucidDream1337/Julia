@@ -15,7 +15,7 @@ Wichtig vor dem ersten Training:
 
 - Eigene, selbst erstellte Aufgaben und Lösungen verwenden. Kopierte W3Schools-Texte sind als
   Trainingsdaten ungeeignet (Urheberrecht/Nutzungsbedingungen).
-- Lizenz des Basismodells (Llama 3.2) prüfen.
-- GPU-Speicher prüfen (QLoRA für 3B-Modelle ist meist mit 8–12 GB VRAM machbar).
+- Lizenz des Basismodells (Qwen2.5) prüfen.
+- GPU-Speicher prüfen (QLoRA für 7B-Modelle braucht meist etwa 12–16 GB VRAM).
 - Zuerst RAG stabil betreiben und eine kleine Testfragenliste anlegen, um Fine-Tuning messbar
   gegen den RAG-Stand zu vergleichen.

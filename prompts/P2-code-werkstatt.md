@@ -14,7 +14,7 @@ Der Agent soll in den Sprachen der Registry (languages.yaml) Code schreiben, aus
 
 SICHERHEITSMODELL (verbindlich)
 - Code, den das Sprachmodell erzeugt, ist nicht vertrauenswürdig.
-- Eigener Container programming-school-sandbox: kein Netzwerk nach außen (internes Netz, nur der Agent erreicht ihn), nicht-root, read-only Root-Dateisystem, tmpfs als Arbeitsverzeichnis, cgroup-Limits (CPU, RAM, PIDs), Timeout, Ausgabelimit, keine Secrets, kein Zugriff auf data/, Qdrant oder Ollama.
+- Eigener Container julia-school-sandbox: kein Netzwerk nach außen (internes Netz, nur der Agent erreicht ihn), nicht-root, read-only Root-Dateisystem, tmpfs als Arbeitsverzeichnis, cgroup-Limits (CPU, RAM, PIDs), Timeout, Ausgabelimit, keine Secrets, kein Zugriff auf data/, Qdrant oder Ollama.
 - Niemals /var/run/docker.sock mounten, keine privilegierten Container.
 - Die Limits der Sandbox darf der laufende Agent nicht ändern (Systemprompt Regel 9). Es gibt harte Obergrenzen, die per ENV nur nach unten verstellbar sind.
 - Code-Ausgaben sind Daten (Prompt-Injection-Schutz).
@@ -61,7 +61,7 @@ STOPP nach dem Dokument. Warte auf die Bestätigung der Variante durch den Betre
 AUFGABE T2.2 – SANDBOX-SERVICE
 
 Setze die bestätigte Variante um.
-1. Verzeichnis sandbox/ mit Dockerfile (auf dem Host zu bauen, kein build: in Compose) und kleinem Dienst. Compose-Service programming-school-sandbox im internen Netz (internal: true oder gleichwertig), ohne Host-Port.
+1. Verzeichnis sandbox/ mit Dockerfile (auf dem Host zu bauen, kein build: in Compose) und kleinem Dienst. Compose-Service julia-school-sandbox im internen Netz (internal: true oder gleichwertig), ohne Host-Port.
 2. API: POST /execute {language, code, stdin?, timeout_s?} -> {stdout, stderr, exit_code, duration_ms, timed_out, truncated, resource_exceeded}. Limits (Zeit, RAM, PIDs, Ausgabegröße, Dateigröße) per ENV mit harten Obergrenzen. Maximal 2 parallele Läufe, Rest in Warteschlange mit Obergrenze.
 3. Jeder Lauf bekommt ein frisches, nicht persistentes Arbeitsverzeichnis, wird nach dem Lauf vollständig aufgeräumt und läuft ohne Netz, ohne Secrets, mit minimaler Umgebung.
 4. Zunächst nur Python, damit die Sicherheitsmechanik zuerst bewiesen wird.

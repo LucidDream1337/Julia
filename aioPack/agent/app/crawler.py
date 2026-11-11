@@ -46,7 +46,7 @@ class Source:
             return False
         if re.search(self.exclude_pattern, path):
             return False
-        return path.endswith(".asp") or path.endswith("/")
+        return path.endswith((".asp", ".php")) or path.endswith("/")
 
 
 W3SCHOOLS = Source(
@@ -61,6 +61,8 @@ W3SCHOOLS = Source(
         "https://www.w3schools.com/java/default.asp",
         "https://www.w3schools.com/cpp/default.asp",
         "https://www.w3schools.com/c/index.php",
+        "https://www.w3schools.com/cs/index.php",
+        "https://www.w3schools.com/php/default.asp",
     ),
     allowed_prefixes=(
         "/python/", "/js/", "/html/", "/css/", "/sql/", "/java/", "/cpp/", "/c/", "/cs/", "/php/",

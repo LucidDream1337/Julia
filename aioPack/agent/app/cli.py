@@ -1,9 +1,9 @@
 """Kommandozeile für Admin-Aufgaben direkt im Container (ohne HTTP/Token):
 
-  docker exec programming-school-agent python -m app.cli status
-  docker exec programming-school-agent python -m app.cli learn --max-pages 10
-  docker exec programming-school-agent python -m app.cli crawl https://www.w3schools.com/python/python_lists.asp
-  docker exec programming-school-agent python -m app.cli ask "Was ist eine Python-Liste?"
+  docker exec julia-school-agent python -m app.cli status
+  docker exec julia-school-agent python -m app.cli learn --max-pages 10
+  docker exec julia-school-agent python -m app.cli crawl https://www.w3schools.com/python/python_lists.asp
+  docker exec julia-school-agent python -m app.cli ask "Was ist eine Python-Liste?"
 """
 from __future__ import annotations
 
