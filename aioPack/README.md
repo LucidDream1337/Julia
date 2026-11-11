@@ -1,19 +1,11 @@
 # Programming Learning Agent (Ollama + RAG + Qdrant + Open WebUI)
 
 Lokaler Programmier-Lernagent: Lernmaterial von W3Schools wird höflich gecrawlt, in Qdrant
-<<<<<<< HEAD
-gespeichert und über RAG mit Qwen2.5:7b beantwortet. Bedienung über Open WebUI.
-Der komplette Stack (inklusive Ollama mit NVIDIA-GPU) läuft in Docker.
-
-```
-Open WebUI :3001 ──► Ollama (GPU, Qwen2.5:7b)
-=======
 gespeichert und über RAG mit qwen2.5:7b beantwortet. Bedienung über Open WebUI.
 Der komplette Stack (inklusive Ollama mit NVIDIA-GPU) läuft in Docker.
 
 ```
 Open WebUI :3001 ──► Ollama (GPU, qwen2.5:7b)
->>>>>>> 3e19556 (rebuild)
       │
       └─ Tool (OpenAPI) ──► julia-agent :8090 ──► Qdrant :6333
                                    ▲                      ▲
@@ -100,13 +92,8 @@ docker compose --env-file .env up -d
 docker compose --env-file .env ps
 ```
 
-<<<<<<< HEAD
-Beim ersten Start lädt der Hilfscontainer `programming-school-ollama-models` die Modelle
-`Qwen2.5:7b` und `nomic-embed-text` (ca. 2,3 GB) und beendet sich danach mit Status
-=======
 Beim ersten Start lädt der Hilfscontainer `julia-school-ollama-models` die Modelle
 `qwen2.5:7b` und `nomic-embed-text` (ca. 2,3 GB) und beendet sich danach mit Status
->>>>>>> 3e19556 (rebuild)
 `Exited (0)` – das ist normal. Fortschritt:
 
 ```bash
@@ -154,17 +141,10 @@ die Fähigkeit **Websuche** aktivieren und unter **Standard-Funktionen** ebenfal
 2. **Admin-Einstellungen → Externe Tools** (je nach Version „Tools"/„Tool-Server"): Verbindung
    hinzufügen, Typ **OpenAPI**, URL `http://julia-agent:8090`, OpenAPI-Pfad `openapi.json`,
    speichern. Die Anfragen kommen vom Open-WebUI-Container, daher gilt der Docker-Hostname.
-<<<<<<< HEAD
-3. Im Chat das Modell `Qwen2.5:7b` wählen und das Tool **ask_programming_question**
-   aktivieren (Werkzeug-Symbol unter dem Eingabefeld).
-4. Empfehlung: Unter *Arbeitsbereich → Modelle* ein eigenes Modell „Programmier-Lehrer" auf Basis
-   von `Qwen2.5:7b` anlegen, mit Systemprompt wie:
-=======
 3. Im Chat das Modell `qwen2.5:7b` wählen und das Tool **ask_programming_question**
    aktivieren (Werkzeug-Symbol unter dem Eingabefeld).
 4. Empfehlung: Unter *Arbeitsbereich → Modelle* ein eigenes Modell „Programmier-Lehrer" auf Basis
    von `qwen2.5:7b` anlegen, mit Systemprompt wie:
->>>>>>> 3e19556 (rebuild)
    *„Rufe bei jeder Frage zu Programmierung zuerst das Tool ask_programming_question auf und gib
    dessen Antwort samt Quellen wieder."*
 
@@ -189,11 +169,7 @@ curl http://127.0.0.1:8090/status -H "X-Admin-Token: ..."
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://ollama:11434` | Ollama-Container im Stack |
 | `OLLAMA_KEEP_ALIVE` / `OLLAMA_HOST_PORT` | `30m` / `11434` | Wie lange Modelle im VRAM bleiben / lokaler Host-Port von Ollama (nur 127.0.0.1) |
-<<<<<<< HEAD
-| `OLLAMA_MODEL` | `Qwen2.5:7b` | Antwortmodell |
-=======
 | `OLLAMA_MODEL` | `qwen2.5:7b` | Antwortmodell |
->>>>>>> 3e19556 (rebuild)
 | `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text` | Embedding-Modell |
 | `OLLAMA_NUM_CTX` | `8192` | Kontextfenster (Agent **und** Ollama-Standard via `OLLAMA_CONTEXT_LENGTH`) |
 | `QDRANT_URL` / `COLLECTION_NAME` | `http://qdrant:6333` / `programming_knowledge` | Vektordatenbank |
@@ -257,13 +233,8 @@ Vor einem Training: eigene Trainingsdaten, GPU-Speicher und Modelllizenz prüfen
 |---|---|
 | `ollama` startet nicht: „could not select device driver nvidia" | NVIDIA Container Toolkit fehlt oder Docker wurde nicht neu gestartet (siehe Voraussetzungen) |
 | Notbehelf ohne GPU | Im Block `ollama:` der Compose-Datei `deploy:` und die beiden `NVIDIA_*`-Variablen entfernen – Ollama läuft dann auf der CPU (deutlich langsamer) |
-<<<<<<< HEAD
-| `/health` zeigt `ollama.reachable: false` | `docker ps` prüfen, `docker logs programming-school-ollama`; Modelle noch beim Laden? |
-| Modell fehlt | `docker logs programming-school-ollama-models`; manuell: `docker exec programming-school-ollama ollama pull `Qwen2.5:7b` bzw. `nomic-embed-text` |
-=======
 | `/health` zeigt `ollama.reachable: false` | `docker ps` prüfen, `docker logs julia-school-ollama`; Modelle noch beim Laden? |
 | Modell fehlt | `docker logs julia-school-ollama-models`; manuell: `docker exec julia-school-ollama ollama pull `qwen2.5:7b` bzw. `nomic-embed-text` |
->>>>>>> 3e19556 (rebuild)
 | Port 11434 belegt | `OLLAMA_HOST_PORT` in `.env` ändern |
 | „container name already in use" | Alter Container mit gleichem Namen: `docker rm -f <name>` |
 | Dockhand: „unable to prepare context" | Es darf kein `build:` im Stack stehen – diese Compose-Datei nutzt nur das Image. Image zuvor per `setup.sh` bauen |

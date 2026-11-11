@@ -7,12 +7,6 @@ Autonomous Self-Learning KI with WebUI
 
 How-To Setup:
 1. Das AiOPack in einen Ordner entpacken
-<<<<<<< HEAD
-2. In den entpackten Ordner navigieren 
-3. Das Script "setup.sh" ausführen
-4. Den Container Stack mit "docker compose up -d" starten
-4. Die WebUI ist dann unter Port 3001 verfügbar
-=======
 2. In den entpackten Ordner navigieren
 3. Das Script `setup.sh` ausführen
 4. Den Container-Stack mit `docker compose --env-file .env up -d` starten
@@ -26,4 +20,3 @@ Damit sie in jedem neuen Chat automatisch aktiv ist:
 
 ## Wissens-Tool anbinden
 *Admin-Panel → Externe Tools → OpenAPI*: URL `http://julia-agent:8090`, Pfad `openapi.json`. Details in `aioPack/README.md`.
->>>>>>> 3e19556 (rebuild)
