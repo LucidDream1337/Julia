@@ -1,7 +1,7 @@
 # julia Learning Stack: Ollama (GPU) + Open WebUI + Qdrant + julia Agent + Worker
 #
 # - Ollama ist Teil dieses Stacks (NVIDIA-GPU, Modelle liegen unter data/ollama).
-#   Der Dienst "ollama-models" lädt beim ersten Start qwen2.5:7b und nomic-embed-text und
+#   Der Dienst "ollama-models" lädt beim ersten Start qwen3:14b und nomic-embed-text und
 #   beendet sich danach (Status "Exited (0)" ist normal).
 # - Das Agent-Image wird vorher auf dem Host gebaut (siehe setup.sh):
 #     docker build -t julia-school-agent:1.0 /Projekte/Festplatten/int0SSD0/agent
@@ -14,11 +14,12 @@ name: julia-learning
 
 x-agent-environment: &agent-environment
   OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
-  OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b}
+  OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:14b}
   OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
   OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-8192}
+  OLLAMA_THINK: ${OLLAMA_THINK:-false}
   QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
-  COLLECTION_NAME: ${COLLECTION_NAME:-julia_knowledge}
+  COLLECTION_NAME: ${COLLECTION_NAME:-programming_knowledge}
   DATA_DIR: /data
   CRAWL_DELAY_SECONDS: ${CRAWL_DELAY_SECONDS:-2}
   MAX_PAGES_PER_RUN: ${MAX_PAGES_PER_RUN:-25}
@@ -75,7 +76,7 @@ services:
       - ollama
     environment:
       OLLAMA_HOST: http://ollama:11434
-      LLM_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b}
+      LLM_MODEL: ${OLLAMA_MODEL:-qwen3:14b}
       EMB_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
     entrypoint: ["/bin/sh", "-c"]
     command:
@@ -145,7 +146,7 @@ services:
       RAG_EMBEDDING_ENGINE: ollama
       RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
       # Standardmodell für neue Chats
-      DEFAULT_MODELS: ${OLLAMA_MODEL:-qwen2.5:7b}
+      DEFAULT_MODELS: ${OLLAMA_MODEL:-qwen3:14b}
       # Websuche: Hinweis - Open WebUI übernimmt diese Werte nur beim ERSTEN Start. Was später
       # im Admin-Panel gespeichert wird, hat Vorrang ("persistent config").
       ENABLE_WEB_SEARCH: ${WEBUI_ENABLE_WEB_SEARCH:-true}

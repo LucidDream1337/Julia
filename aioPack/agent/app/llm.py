@@ -1,27 +1,37 @@
 """Sprachmodell-Zugriff (Chat) und Modell-Übersicht über Ollama."""
 from __future__ import annotations
 
+import re
+
 import httpx
 
 from .config import settings
 from .errors import OllamaError
 
 
+_THINK_RE = re.compile(r"<think>.*?</think>", re.S)
+
+
 def chat(messages: list[dict], temperature: float = 0.2, num_predict: int | None = None) -> str:
     options: dict = {"temperature": temperature, "num_ctx": settings.ollama_num_ctx}
     if num_predict:
         options["num_predict"] = num_predict
+    payload: dict = {
+        "model": settings.ollama_model,
+        "messages": messages,
+        "stream": False,
+        "options": options,
+    }
+    # Qwen3 & Co. "denken" standardmäßig; das verbraucht Tokens (Query-Rewrite hat nur 48) und Zeit.
+    if not settings.ollama_think:
+        payload["think"] = False
     try:
         with httpx.Client(timeout=settings.ollama_timeout) as client:
-            resp = client.post(
-                f"{settings.ollama_base_url}/api/chat",
-                json={
-                    "model": settings.ollama_model,
-                    "messages": messages,
-                    "stream": False,
-                    "options": options,
-                },
-            )
+            url = f"{settings.ollama_base_url}/api/chat"
+            resp = client.post(url, json=payload)
+            if resp.status_code == 400 and "think" in payload and "think" in resp.text.lower():
+                payload.pop("think")  # Modell/Ollama-Version kennt den Parameter nicht
+                resp = client.post(url, json=payload)
             if resp.status_code == 404 and "not found" in resp.text.lower():
                 raise OllamaError(
                     f"Modell '{settings.ollama_model}' fehlt in Ollama. Installieren mit: "
@@ -35,7 +45,7 @@ def chat(messages: list[dict], temperature: float = 0.2, num_predict: int | None
         ) from exc
     except ValueError as exc:
         raise OllamaError(f"Ungültige Antwort von Ollama: {exc}") from exc
-    return content.strip()
+    return _THINK_RE.sub("", content).strip()
 
 
 def list_models() -> list[str]:

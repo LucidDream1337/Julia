@@ -1,11 +1,11 @@
 # Programming Learning Agent (Ollama + RAG + Qdrant + Open WebUI)
 
 Lokaler Programmier-Lernagent: Lernmaterial von W3Schools wird höflich gecrawlt, in Qdrant
-gespeichert und über RAG mit qwen2.5:7b beantwortet. Bedienung über Open WebUI.
+gespeichert und über RAG mit qwen3:14b beantwortet. Bedienung über Open WebUI.
 Der komplette Stack (inklusive Ollama mit NVIDIA-GPU) läuft in Docker.
 
 ```
-Open WebUI :3001 ──► Ollama (GPU, qwen2.5:7b)
+Open WebUI :3001 ──► Ollama (GPU, qwen3:14b)
       │
       └─ Tool (OpenAPI) ──► julia-agent :8090 ──► Qdrant :6333
                                    ▲                      ▲
@@ -22,6 +22,7 @@ Open WebUI :3001 ──► Ollama (GPU, qwen2.5:7b)
 | `agent/` | Python-Quellcode + `Dockerfile` des Agenten |
 | `data/` | Persistente Daten (`ollama`, `qdrant`, `open-webui`, `agent`) |
 | `training/` | Reserviert für späteres Fine-Tuning |
+| `AGENTS.md`, `START-HERMES.md`, `prompts/` | Projektregeln und Aufgaben für den Entwicklungs-Agenten (Hermes), siehe `prompts/README.md` |
 | `.env.example` | Vorlage der Konfiguration |
 
 ## Getroffene Annahmen
@@ -93,7 +94,7 @@ docker compose --env-file .env ps
 ```
 
 Beim ersten Start lädt der Hilfscontainer `julia-school-ollama-models` die Modelle
-`qwen2.5:7b` und `nomic-embed-text` (ca. 2,3 GB) und beendet sich danach mit Status
+`qwen3:14b` und `nomic-embed-text` (zusammen ca. 9–10 GB) und beendet sich danach mit Status
 `Exited (0)` – das ist normal. Fortschritt:
 
 ```bash
@@ -133,7 +134,7 @@ docker exec julia-school-agent python -m app.cli crawl https://www.w3schools.com
 
 **Websuche:** Der Stack setzt `ENABLE_WEB_SEARCH`, `WEB_SEARCH_ENGINE` (DuckDuckGo) usw. per Umgebungsvariable.
 Diese Werte gelten nur beim *ersten* Start von Open WebUI; danach hat das Admin-Panel Vorrang. Damit die Suche in
-neuen Chats automatisch angeschaltet ist, einmalig unter *Admin-Panel → Einstellungen → Modelle → qwen2.5:7b*
+neuen Chats automatisch angeschaltet ist, einmalig unter *Admin-Panel → Einstellungen → Modelle → qwen3:14b*
 die Fähigkeit **Websuche** aktivieren und unter **Standard-Funktionen** ebenfalls **Websuche** anhaken
 (dafür gibt es keine Umgebungsvariable).
 
@@ -141,15 +142,15 @@ die Fähigkeit **Websuche** aktivieren und unter **Standard-Funktionen** ebenfal
 2. **Admin-Einstellungen → Externe Tools** (je nach Version „Tools"/„Tool-Server"): Verbindung
    hinzufügen, Typ **OpenAPI**, URL `http://julia-agent:8090`, OpenAPI-Pfad `openapi.json`,
    speichern. Die Anfragen kommen vom Open-WebUI-Container, daher gilt der Docker-Hostname.
-3. Im Chat das Modell `qwen2.5:7b` wählen und das Tool **ask_programming_question**
+3. Im Chat das Modell `qwen3:14b` wählen und das Tool **ask_programming_question**
    aktivieren (Werkzeug-Symbol unter dem Eingabefeld).
 4. Empfehlung: Unter *Arbeitsbereich → Modelle* ein eigenes Modell „Programmier-Lehrer" auf Basis
-   von `qwen2.5:7b` anlegen, mit Systemprompt wie:
+   von `qwen3:14b` anlegen, mit Systemprompt wie:
    *„Rufe bei jeder Frage zu Programmierung zuerst das Tool ask_programming_question auf und gib
    dessen Antwort samt Quellen wieder."*
 
 Hinweise: Die Menübezeichnungen unterscheiden sich zwischen Open-WebUI-Versionen und müssen
-ggf. angepasst werden. Auch ein 7B-Modell ruft Tools nicht immer zuverlässig auf – ein expliziter
+ggf. angepasst werden. Auch ein 14B-Modell ruft Tools nicht immer zuverlässig auf – ein expliziter
 Systemprompt (siehe oben) hilft; gegebenenfalls in den erweiterten Parametern des Modells den
 Funktionsaufruf-Modus „Nativ" bzw. „Standard" ausprobieren.
 
@@ -169,8 +170,9 @@ curl http://127.0.0.1:8090/status -H "X-Admin-Token: ..."
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://ollama:11434` | Ollama-Container im Stack |
 | `OLLAMA_KEEP_ALIVE` / `OLLAMA_HOST_PORT` | `30m` / `11434` | Wie lange Modelle im VRAM bleiben / lokaler Host-Port von Ollama (nur 127.0.0.1) |
-| `OLLAMA_MODEL` | `qwen2.5:7b` | Antwortmodell |
+| `OLLAMA_MODEL` | `qwen3:14b` | Antwortmodell |
 | `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text` | Embedding-Modell |
+| `OLLAMA_THINK` | `false` | Qwen3-„Thinking“ im Agenten (aus = schneller, Query-Rewrite funktioniert) |
 | `OLLAMA_NUM_CTX` | `8192` | Kontextfenster (Agent **und** Ollama-Standard via `OLLAMA_CONTEXT_LENGTH`) |
 | `QDRANT_URL` / `COLLECTION_NAME` | `http://qdrant:6333` / `programming_knowledge` | Vektordatenbank |
 | `CRAWL_DELAY_SECONDS` | `2` | Pause zwischen Anfragen (Minimum 2; `Crawl-delay` aus robots.txt hat Vorrang, falls höher) |
@@ -234,7 +236,7 @@ Vor einem Training: eigene Trainingsdaten, GPU-Speicher und Modelllizenz prüfen
 | `ollama` startet nicht: „could not select device driver nvidia" | NVIDIA Container Toolkit fehlt oder Docker wurde nicht neu gestartet (siehe Voraussetzungen) |
 | Notbehelf ohne GPU | Im Block `ollama:` der Compose-Datei `deploy:` und die beiden `NVIDIA_*`-Variablen entfernen – Ollama läuft dann auf der CPU (deutlich langsamer) |
 | `/health` zeigt `ollama.reachable: false` | `docker ps` prüfen, `docker logs julia-school-ollama`; Modelle noch beim Laden? |
-| Modell fehlt | `docker logs julia-school-ollama-models`; manuell: `docker exec julia-school-ollama ollama pull `qwen2.5:7b` bzw. `nomic-embed-text` |
+| Modell fehlt | `docker logs julia-school-ollama-models`; manuell: `docker exec julia-school-ollama ollama pull `qwen3:14b` bzw. `nomic-embed-text` |
 | Port 11434 belegt | `OLLAMA_HOST_PORT` in `.env` ändern |
 | „container name already in use" | Alter Container mit gleichem Namen: `docker rm -f <name>` |
 | Dockhand: „unable to prepare context" | Es darf kein `build:` im Stack stehen – diese Compose-Datei nutzt nur das Image. Image zuvor per `setup.sh` bauen |

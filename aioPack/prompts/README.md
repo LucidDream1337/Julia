@@ -23,7 +23,8 @@ Jede Projektdatei enthält zuerst den **Projekt-Prompt** und danach die **Aufgab
 
 ## So verwendest du es
 
-1. Entwicklungs-Agenten (z. B. Claude Code) im Repo-Root starten. Teil A aus `00-system-prompt.md` als `CLAUDE.md` bzw. `AGENTS.md` ablegen.
+1. **Hermes-Kurzweg:** `AGENTS.md` (= Teil A) und `START-HERMES.md` liegen bereits im Stack-Ordner. Hermes dort starten und sagen: *„Lies START-HERMES.md und führe es aus.“* Alles Weitere unten ist der manuelle Weg.
+1. (manuell) Entwicklungs-Agenten (z. B. Claude Code, Hermes) im Repo-Root starten. Teil A aus `00-system-prompt.md` als `AGENTS.md` ablegen.
 2. Pro Projekt zuerst den Projekt-Prompt senden, dann die Aufgaben-Prompts nacheinander. Erst zur nächsten Aufgabe, wenn der Bericht (Geändert / Geprüft / Nicht geprüft / Annahmen / Offene Fragen) für dich plausibel ist.
 3. Die Befehle, die der Agent nur „dokumentiert“, führst du auf dem Server aus (Docker, GPU, Internet). Nur dort lässt sich prüfen, ob es wirklich läuft.
 
@@ -49,7 +50,7 @@ P5 hängt nur von P0 ab und kann jederzeit eingeschoben werden. P2 und P3 sind v
 ## Was du wissen solltest (ehrliche Grenzen)
 
 - **„Jede Programmiersprache über W3Schools“**: W3Schools deckt nur die Sprachen ab, für die es Tutorials gibt. P1 (T1.1) ermittelt diese Liste verbindlich. Für alles andere braucht es andere Quellen.
-- **Lernen heißt hier Wissen im Index plus Üben mit Rückmeldung.** Ein 7B-Modell wird dadurch kein Senior-Entwickler. P2 macht das messbar (Kompetenzmatrix), statt es zu behaupten.
+- **Lernen heißt hier Wissen im Index plus Üben mit Rückmeldung.** Ein 14B-Modell wird dadurch kein Senior-Entwickler. P2 macht das messbar (Kompetenzmatrix), statt es zu behaupten.
 - **Wikipedia komplett** ist groß. Die deutsche Ausgabe hat etwa 3 Mio., die englische etwa 7 Mio. Artikel. Deshalb Phasen (simplewiki als Test, dann dewiki, dann enwiki), Stufen beim Embedding und ein Kapazitätsplan vor dem ersten großen Download.
 - **Selbstverbesserung** bedeutet hier: Daten, Parameter und Prompts verbessern, mit Messung, Rollback und Kill-Switch. Das Modell selbst wird nicht trainiert, und das System ändert weder seinen eigenen Code noch seine Sicherheitsgrenzen.
 - **Bereits im Projekt auffällig** (in P1/T1.1 zu verifizieren): Für C# und PHP gibt es keine Seeds, und die Endungsprüfung im Crawler lässt `.php`-Seiten (z. B. das C-Tutorial) vermutlich nicht durch.
@@ -57,6 +58,6 @@ P5 hängt nur von P0 ab und kann jederzeit eingeschoben werden. P2 und P3 sind v
 
 ## Annahmen
 
-- Die Prompts richten sich an einen leistungsfähigen Coding-Agenten, der in deinem Repository arbeiten darf. Das Laufzeitmodell (qwen2.5:7b) bekommt nur den kurzen Systemprompt aus Teil B.
+- Die Prompts richten sich an einen leistungsfähigen Coding-Agenten, der in deinem Repository arbeiten darf. Das Laufzeitmodell (qwen3:14b) bekommt nur den kurzen Systemprompt aus Teil B.
 - Das Basismodell, das Embedding-Modell und die GPU bleiben wie in deinem Setup. Ein größeres Modell ist nicht vorausgesetzt.
 - Den ZIP-Inhalt habe ich gelesen, aber nicht ausgeführt. Die Verdachtsmomente zum Crawler sind aus dem Quellcode abgeleitet und noch nicht am laufenden System bestätigt.

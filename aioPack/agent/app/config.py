@@ -50,6 +50,7 @@ class Settings:
     ollama_model: str
     ollama_embedding_model: str
     ollama_num_ctx: int
+    ollama_think: bool
     ollama_timeout: float
     # Qdrant
     qdrant_url: str
@@ -94,9 +95,10 @@ USER_AGENT_TOKEN = "ProgrammingSchoolLearningBot"
 def load_settings() -> Settings:
     return Settings(
         ollama_base_url=_str("OLLAMA_BASE_URL", "http://ollama:11434").rstrip("/"),
-        ollama_model=_str("OLLAMA_MODEL", "qwen2.5:7b"),
+        ollama_model=_str("OLLAMA_MODEL", "qwen3:14b"),
         ollama_embedding_model=_str("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text"),
         ollama_num_ctx=_int("OLLAMA_NUM_CTX", 8192, minimum=1024),
+        ollama_think=_bool("OLLAMA_THINK", False),
         ollama_timeout=_float("OLLAMA_TIMEOUT_SECONDS", 300.0, minimum=10.0),
         qdrant_url=_str("QDRANT_URL", "http://qdrant:6333").rstrip("/"),
         qdrant_api_key=_str("QDRANT_API_KEY", ""),
