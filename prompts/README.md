@@ -57,6 +57,6 @@ P5 hängt nur von P0 ab und kann jederzeit eingeschoben werden. P2 und P3 sind v
 
 ## Annahmen
 
-- Die Prompts richten sich an einen leistungsfähigen Coding-Agenten, der in deinem Repository arbeiten darf. Das Laufzeitmodell (Llama 3.2 3B) bekommt nur den kurzen Systemprompt aus Teil B.
+- Die Prompts richten sich an einen leistungsfähigen Coding-Agenten, der in deinem Repository arbeiten darf. Das Laufzeitmodell (Qwen2.5:7b) bekommt nur den kurzen Systemprompt aus Teil B.
 - Das Basismodell, das Embedding-Modell und die GPU bleiben wie in deinem Setup. Ein größeres Modell ist nicht vorausgesetzt.
 - Den ZIP-Inhalt habe ich gelesen, aber nicht ausgeführt. Die Verdachtsmomente zum Crawler sind aus dem Quellcode abgeleitet und noch nicht am laufenden System bestätigt.
