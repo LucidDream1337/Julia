@@ -1,16 +1,16 @@
-# Julia Learning Stack: Ollama (GPU) + Open WebUI + Qdrant + Julia Agent + Worker
+# julia Learning Stack: Ollama (GPU) + Open WebUI + Qdrant + julia Agent + Worker
 #
 # - Ollama ist Teil dieses Stacks (NVIDIA-GPU, Modelle liegen unter data/ollama).
 #   Der Dienst "ollama-models" lädt beim ersten Start llama3.2:3b und nomic-embed-text und
 #   beendet sich danach (Status "Exited (0)" ist normal).
 # - Das Agent-Image wird vorher auf dem Host gebaut (siehe setup.sh):
-#     docker build -t Julia-school-agent:1.0 /Projekte/Festplatten/int0SSD0/agent
+#     docker build -t julia-school-agent:1.0 /Projekte/Festplatten/int0SSD0/agent
 #   Darum gibt es hier bewusst keinen "build:"-Abschnitt (Dockhand-Build-Kontext-Problem).
 # - Variablen kommen aus .env (siehe .env.example). In Dockhand den Inhalt der .env in den
 #   Umgebungsvariablen des Stacks hinterlegen.
-# - Das Netzwerk "Julia-learning-net" legt dieser Stack selbst an.
+# - Das Netzwerk "julia-learning-net" legt dieser Stack selbst an.
 
-name: Julia-learning
+name: julia-learning
 
 x-agent-environment: &agent-environment
   OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
@@ -18,7 +18,7 @@ x-agent-environment: &agent-environment
   OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
   OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-4096}
   QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
-  COLLECTION_NAME: ${COLLECTION_NAME:-Julia_knowledge}
+  COLLECTION_NAME: ${COLLECTION_NAME:-julia_knowledge}
   DATA_DIR: /data
   CRAWL_DELAY_SECONDS: ${CRAWL_DELAY_SECONDS:-2}
   MAX_PAGES_PER_RUN: ${MAX_PAGES_PER_RUN:-25}
@@ -33,7 +33,7 @@ x-agent-environment: &agent-environment
 services:
   ollama:
     image: ollama/ollama:latest
-    container_name: Julia-school-ollama
+    container_name: julia-school-ollama
     restart: unless-stopped
     environment:
       NVIDIA_VISIBLE_DEVICES: all
@@ -52,14 +52,14 @@ services:
               count: all
               capabilities: [gpu]
     networks:
-      Julia-net:
+      julia-net:
         aliases:
           - ollama
 
   ollama-models:
     # Einmaliger Helfer: lädt die Modelle und beendet sich danach.
     image: ollama/ollama:latest
-    container_name: Julia-school-ollama-models
+    container_name: julia-school-ollama-models
     restart: "no"
     depends_on:
       - ollama
@@ -73,20 +73,20 @@ services:
         for i in $$(seq 1 60); do ollama list >/dev/null 2>&1 && break; sleep 2; done
         ollama pull "$$LLM_MODEL" && ollama pull "$$EMB_MODEL"
     networks:
-      - Julia-net
+      - julia-net
 
   qdrant:
     image: ${QDRANT_IMAGE:-qdrant/qdrant:latest}
-    container_name: Julia-school-qdrant
+    container_name: julia-school-qdrant
     restart: unless-stopped
     volumes:
       - ${PROJECT_DIR:-/Projekte/Festplatten/int0SSD0}/data/qdrant:/qdrant/storage
     networks:
-      - Julia-net
+      - julia-net
 
-  Julia-agent:
-    image: Julia-school-agent:1.0
-    container_name: Julia-school-agent
+  julia-agent:
+    image: julia-school-agent:1.0
+    container_name: julia-school-agent
     restart: unless-stopped
     environment: *agent-environment
     volumes:
@@ -104,11 +104,11 @@ services:
       retries: 5
       start_period: 20s
     networks:
-      - Julia-net
+      - julia-net
 
   learning-worker:
-    image: Julia-school-agent:1.0
-    container_name: Julia-school-worker
+    image: julia-school-agent:1.0
+    container_name: julia-school-worker
     restart: unless-stopped
     command: ["python", "-m", "app.worker"]
     environment: *agent-environment
@@ -118,11 +118,11 @@ services:
       - qdrant
       - ollama
     networks:
-      - Julia-net
+      - julia-net
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
-    container_name: Julia-school-webui
+    container_name: julia-school-webui
     restart: unless-stopped
     ports:
       - "${WEBUI_PORT:-3001}:8080"
@@ -140,8 +140,8 @@ services:
     volumes:
       - ${PROJECT_DIR:-/Projekte/Festplatten/int0SSD0}/data/open-webui:/app/backend/data
     networks:
-      - Julia-net
+      - julia-net
 
 networks:
-  Julia-net:
-    name: Julia-learning-net
+  julia-net:
+    name: julia-learning-net
