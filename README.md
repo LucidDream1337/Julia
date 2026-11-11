@@ -1,6 +1,10 @@
 # Julia
 Autonomous Self-Learning KI with WebUI
 
+## ACHTUNG: Dieser Schritt muss in OpenUI Manuell gemacht werden
+1. Einstellungen öffnen
+2. Den Toggle "Websuche" und "Embedding und Retrieval umgehen" aktivieren und dann die entsprechenden engines einstellen (Ich verwende persönlich DuckDuckGo)
+
 How-To Setup:
 1. Das AiOPack in einen Ordner entpacken
 2. In den entpackten Ordner navigieren 
