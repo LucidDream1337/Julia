@@ -1,0 +1,7 @@
+.env
+data/qdrant/*
+data/open-webui/*
+data/agent/*
+!data/*/.gitkeep
+__pycache__/
+*.pyc

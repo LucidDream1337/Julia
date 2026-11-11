@@ -1,0 +1,147 @@
+# Programming Learning Stack: Ollama (GPU) + Open WebUI + Qdrant + Programming Agent + Worker
+#
+# - Ollama ist Teil dieses Stacks (NVIDIA-GPU, Modelle liegen unter data/ollama).
+#   Der Dienst "ollama-models" lädt beim ersten Start llama3.2:3b und nomic-embed-text und
+#   beendet sich danach (Status "Exited (0)" ist normal).
+# - Das Agent-Image wird vorher auf dem Host gebaut (siehe setup.sh):
+#     docker build -t programming-school-agent:1.0 /Projekte/Festplatten/int0SSD0/agent
+#   Darum gibt es hier bewusst keinen "build:"-Abschnitt (Dockhand-Build-Kontext-Problem).
+# - Variablen kommen aus .env (siehe .env.example). In Dockhand den Inhalt der .env in den
+#   Umgebungsvariablen des Stacks hinterlegen.
+# - Das Netzwerk "programming-learning-net" legt dieser Stack selbst an.
+
+name: programming-learning
+
+x-agent-environment: &agent-environment
+  OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+  OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+  OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+  OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-4096}
+  QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+  COLLECTION_NAME: ${COLLECTION_NAME:-programming_knowledge}
+  DATA_DIR: /data
+  CRAWL_DELAY_SECONDS: ${CRAWL_DELAY_SECONDS:-2}
+  MAX_PAGES_PER_RUN: ${MAX_PAGES_PER_RUN:-25}
+  CRAWL_INTERVAL_HOURS: ${CRAWL_INTERVAL_HOURS:-24}
+  RECRAWL_AFTER_DAYS: ${RECRAWL_AFTER_DAYS:-30}
+  RAG_TOP_K: ${RAG_TOP_K:-4}
+  RAG_MIN_SCORE: ${RAG_MIN_SCORE:-0.35}
+  RAG_QUERY_REWRITE: ${RAG_QUERY_REWRITE:-true}
+  ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN fehlt - setup.sh erzeugt es in .env}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: programming-school-ollama
+    restart: unless-stopped
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+    volumes:
+      - ${PROJECT_DIR:-/Projekte/Festplatten/int0SSD0}/data/ollama:/root/.ollama
+    ports:
+      # Nur lokal auf dem Server erreichbar (nicht im LAN).
+      - "127.0.0.1:${OLLAMA_HOST_PORT:-11434}:11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      programming-net:
+        aliases:
+          - ollama
+
+  ollama-models:
+    # Einmaliger Helfer: lädt die Modelle und beendet sich danach.
+    image: ollama/ollama:latest
+    container_name: programming-school-ollama-models
+    restart: "no"
+    depends_on:
+      - ollama
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      LLM_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      EMB_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        for i in $$(seq 1 60); do ollama list >/dev/null 2>&1 && break; sleep 2; done
+        ollama pull "$$LLM_MODEL" && ollama pull "$$EMB_MODEL"
+    networks:
+      - programming-net
+
+  qdrant:
+    image: ${QDRANT_IMAGE:-qdrant/qdrant:latest}
+    container_name: programming-school-qdrant
+    restart: unless-stopped
+    volumes:
+      - ${PROJECT_DIR:-/Projekte/Festplatten/int0SSD0}/data/qdrant:/qdrant/storage
+    networks:
+      - programming-net
+
+  programming-agent:
+    image: programming-school-agent:1.0
+    container_name: programming-school-agent
+    restart: unless-stopped
+    environment: *agent-environment
+    volumes:
+      - ${PROJECT_DIR:-/Projekte/Festplatten/int0SSD0}/data/agent:/data
+    depends_on:
+      - qdrant
+      - ollama
+    # Kein Host-Port nötig. Zum Debuggen auskommentieren (nur lokal erreichbar):
+    # ports:
+    #   - "127.0.0.1:8090:8090"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=8)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - programming-net
+
+  learning-worker:
+    image: programming-school-agent:1.0
+    container_name: programming-school-worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker"]
+    environment: *agent-environment
+    volumes:
+      - ${PROJECT_DIR:-/Projekte/Festplatten/int0SSD0}/data/agent:/data
+    depends_on:
+      - qdrant
+      - ollama
+    networks:
+      - programming-net
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: programming-school-webui
+    restart: unless-stopped
+    ports:
+      - "${WEBUI_PORT:-3001}:8080"
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?WEBUI_SECRET_KEY fehlt - setup.sh erzeugt es in .env}
+      WEBUI_NAME: Programmier-Schule
+      ENABLE_OPENAI_API: "false"
+      # Eigene Dokument-Embeddings über Ollama statt Download eines HuggingFace-Modells.
+      RAG_EMBEDDING_ENGINE: ollama
+      RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+      ANONYMIZED_TELEMETRY: "false"
+      DO_NOT_TRACK: "true"
+      SCARF_NO_ANALYTICS: "true"
+    volumes:
+      - ${PROJECT_DIR:-/Projekte/Festplatten/int0SSD0}/data/open-webui:/app/backend/data
+    networks:
+      - programming-net
+
+networks:
+  programming-net:
+    name: programming-learning-net
