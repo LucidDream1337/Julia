@@ -65,7 +65,7 @@ services:
       - ollama
     environment:
       OLLAMA_HOST: http://ollama:11434
-      LLM_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      LLM_MODEL: ${OLLAMA_MODEL:-Qwen2.5:7b}
       EMB_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
     entrypoint: ["/bin/sh", "-c"]
     command:
