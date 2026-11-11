@@ -1,11 +1,11 @@
 # Programming Learning Agent (Ollama + RAG + Qdrant + Open WebUI)
 
 Lokaler Programmier-Lernagent: Lernmaterial von W3Schools wird höflich gecrawlt, in Qdrant
-gespeichert und über RAG mit Llama 3.2 3B beantwortet. Bedienung über Open WebUI.
+gespeichert und über RAG mit Qwen2.5:7b beantwortet. Bedienung über Open WebUI.
 Der komplette Stack (inklusive Ollama mit NVIDIA-GPU) läuft in Docker.
 
 ```
-Open WebUI :3001 ──► Ollama (GPU, llama3.2:3b)
+Open WebUI :3001 ──► Ollama (GPU, Qwen2.5:7b)
       │
       └─ Tool (OpenAPI) ──► programming-agent :8090 ──► Qdrant :6333
                                    ▲                      ▲
@@ -93,7 +93,7 @@ docker compose --env-file .env ps
 ```
 
 Beim ersten Start lädt der Hilfscontainer `programming-school-ollama-models` die Modelle
-`llama3.2:3b` und `nomic-embed-text` (ca. 2,3 GB) und beendet sich danach mit Status
+`Qwen2.5:7b` und `nomic-embed-text` (ca. 2,3 GB) und beendet sich danach mit Status
 `Exited (0)` – das ist normal. Fortschritt:
 
 ```bash
@@ -135,10 +135,10 @@ docker exec programming-school-agent python -m app.cli crawl https://www.w3schoo
 2. **Admin-Einstellungen → Externe Tools** (je nach Version „Tools"/„Tool-Server"): Verbindung
    hinzufügen, Typ **OpenAPI**, URL `http://programming-agent:8090`, OpenAPI-Pfad `openapi.json`,
    speichern. Die Anfragen kommen vom Open-WebUI-Container, daher gilt der Docker-Hostname.
-3. Im Chat das Modell `llama3.2:3b` wählen und das Tool **ask_programming_question**
+3. Im Chat das Modell `Qwen2.5:7b` wählen und das Tool **ask_programming_question**
    aktivieren (Werkzeug-Symbol unter dem Eingabefeld).
 4. Empfehlung: Unter *Arbeitsbereich → Modelle* ein eigenes Modell „Programmier-Lehrer" auf Basis
-   von `llama3.2:3b` anlegen, mit Systemprompt wie:
+   von `Qwen2.5:7b` anlegen, mit Systemprompt wie:
    *„Rufe bei jeder Frage zu Programmierung zuerst das Tool ask_programming_question auf und gib
    dessen Antwort samt Quellen wieder."*
 
@@ -163,7 +163,7 @@ curl http://127.0.0.1:8090/status -H "X-Admin-Token: ..."
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://ollama:11434` | Ollama-Container im Stack |
 | `OLLAMA_KEEP_ALIVE` / `OLLAMA_HOST_PORT` | `30m` / `11434` | Wie lange Modelle im VRAM bleiben / lokaler Host-Port von Ollama (nur 127.0.0.1) |
-| `OLLAMA_MODEL` | `llama3.2:3b` | Antwortmodell |
+| `OLLAMA_MODEL` | `Qwen2.5:7b` | Antwortmodell |
 | `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text` | Embedding-Modell |
 | `OLLAMA_NUM_CTX` | `4096` | Kontextfenster für Antworten |
 | `QDRANT_URL` / `COLLECTION_NAME` | `http://qdrant:6333` / `programming_knowledge` | Vektordatenbank |
@@ -228,7 +228,7 @@ Vor einem Training: eigene Trainingsdaten, GPU-Speicher und Modelllizenz prüfen
 | `ollama` startet nicht: „could not select device driver nvidia" | NVIDIA Container Toolkit fehlt oder Docker wurde nicht neu gestartet (siehe Voraussetzungen) |
 | Notbehelf ohne GPU | Im Block `ollama:` der Compose-Datei `deploy:` und die beiden `NVIDIA_*`-Variablen entfernen – Ollama läuft dann auf der CPU (deutlich langsamer) |
 | `/health` zeigt `ollama.reachable: false` | `docker ps` prüfen, `docker logs programming-school-ollama`; Modelle noch beim Laden? |
-| Modell fehlt | `docker logs programming-school-ollama-models`; manuell: `docker exec programming-school-ollama ollama pull llama3.2:3b` bzw. `nomic-embed-text` |
+| Modell fehlt | `docker logs programming-school-ollama-models`; manuell: `docker exec programming-school-ollama ollama pull `Qwen2.5:7b` bzw. `nomic-embed-text` |
 | Port 11434 belegt | `OLLAMA_HOST_PORT` in `.env` ändern |
 | „container name already in use" | Alter Container mit gleichem Namen: `docker rm -f <name>` |
 | Dockhand: „unable to prepare context" | Es darf kein `build:` im Stack stehen – diese Compose-Datei nutzt nur das Image. Image zuvor per `setup.sh` bauen |
