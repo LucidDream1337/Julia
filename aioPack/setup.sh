@@ -11,7 +11,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE="Julia-school-agent:1.0"
+IMAGE="julia-school-agent:1.0"
 ENV_FILE="$PROJECT_DIR/.env"
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yaml"
 OUR_CONTAINERS=(Julia-school-ollama Julia-school-ollama-models Julia-school-qdrant Julia-school-agent Julia-school-worker Julia-school-webui)
