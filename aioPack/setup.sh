@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Setup für den Programming Learning Stack (Ollama mit GPU, Open WebUI, Qdrant, Agent, Worker).
+# Setup für den Julia Learning Stack (Ollama mit GPU, Open WebUI, Qdrant, Agent, Worker).
 #
 # Prüft Voraussetzungen, legt Verzeichnisse an, erzeugt .env, baut das Agent-Image auf dem
 # Host und validiert die Compose-Datei. Bestehende, fremde Container (Jellyfin, Valheim,
@@ -11,10 +11,10 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE="programming-school-agent:1.0"
+IMAGE="Julia-school-agent:1.0"
 ENV_FILE="$PROJECT_DIR/.env"
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yaml"
-OUR_CONTAINERS=(programming-school-ollama programming-school-ollama-models programming-school-qdrant programming-school-agent programming-school-worker programming-school-webui)
+OUR_CONTAINERS=(Julia-school-ollama Julia-school-ollama-models Julia-school-qdrant Julia-school-agent Julia-school-worker Julia-school-webui)
 
 DO_BUILD=1
 DO_UP=0
@@ -71,7 +71,7 @@ fi
 for c in "${OUR_CONTAINERS[@]}"; do
   if docker container inspect "$c" >/dev/null 2>&1; then
     project="$(docker container inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$c" 2>/dev/null || true)"
-    if [ "$project" = "programming-learning" ]; then
+    if [ "$project" = "Julia-learning" ]; then
       ok "Container '$c' gehört bereits zu diesem Stack (wird beim Deploy aktualisiert)"
     else
       fail "Ein Container namens '$c' existiert bereits (Projekt: '${project:-unbekannt}'). Entfernen oder umbenennen: docker rm -f $c"
@@ -80,7 +80,7 @@ for c in "${OUR_CONTAINERS[@]}"; do
 done
 
 LISTENING="$(ss -ltn 2>/dev/null | awk '{print $4}' || true)"
-if echo "$LISTENING" | grep -qE '[:.]11434$' && ! docker container inspect programming-school-ollama >/dev/null 2>&1; then
+if echo "$LISTENING" | grep -qE '[:.]11434$' && ! docker container inspect Julia-school-ollama >/dev/null 2>&1; then
   warn "Port 11434 ist belegt (läuft Ollama bereits auf dem Host?). OLLAMA_HOST_PORT in .env ändern."
 fi
 
@@ -151,7 +151,7 @@ if [ "$DO_UP" -eq 1 ]; then
   step "Stack starten"
   "${COMPOSE[@]}" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d
   ok "Stack gestartet. Modelle werden im Hintergrund geladen:"
-  echo "     docker logs -f programming-school-ollama-models"
+  echo "     docker logs -f Julia-school-ollama-models"
 fi
 
 cat <<MSG
@@ -169,11 +169,11 @@ Fertig. Nächste Schritte:
             ${COMPOSE[*]} --env-file .env up -d
 
   2) Warten, bis die Modelle geladen sind (Container 'ollama-models' endet mit Exit 0):
-       docker logs -f programming-school-ollama-models
-       docker exec programming-school-ollama ollama list
+       docker logs -f Julia-school-ollama-models
+       docker exec Julia-school-ollama ollama list
 
   3) Ersten Lernlauf starten und Open WebUI einrichten – siehe README.md:
-       docker exec programming-school-agent python -m app.cli learn --max-pages 10
+       docker exec Julia-school-agent python -m app.cli learn --max-pages 10
 
   Open WebUI:  http://<server-ip>:${WEBUI_PORT_VALUE}
 MSG
