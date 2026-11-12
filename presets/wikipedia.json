@@ -1,0 +1,11 @@
+{
+  "title": "Wikipedia (Auswahl)",
+  "type": "wikipedia",
+  "description": "Ausgewählte Wikipedia-Artikel über die offizielle API: per Titelliste, Kategorie oder Suchbegriff. Keine Komplettkopie.",
+  "size_hint": "Gedacht für Themenbereiche (einige Dutzend bis wenige Tausend Artikel), nicht für die ganze Wikipedia.",
+  "defaults": {
+    "lang": "de",
+    "delay_seconds": 1,
+    "max_pages": 300
+  }
+}

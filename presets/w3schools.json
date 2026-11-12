@@ -1,0 +1,29 @@
+{
+  "title": "W3Schools",
+  "type": "web",
+  "description": "Programmier-Tutorials von w3schools.com (HTML, CSS, JavaScript, Python, SQL, Java, C, C++, C#, PHP)",
+  "language": "en",
+  "license": "Inhalte von W3Schools (nur private, lokale Nutzung)",
+  "notice": "Die Inhalte gehören W3Schools. Die Kopie dient ausschließlich deinem privaten Gebrauch als lokale Wissensbasis: keine Weitergabe, keine Veröffentlichung, keine kommerzielle Nutzung. Bitte prüfe selbst die Nutzungsbedingungen von w3schools.com.",
+  "defaults": {
+    "delay_seconds": 2,
+    "max_pages": 2500,
+    "content_selector": "#main",
+    "extensions": [".asp", ".php"],
+    "exclude_pattern": "(?i)(tryit|trypython|tryjs|exercise|quiz|certificat|bootcamp|syllabus|study_plan|interview)",
+    "stop_headings": ["color picker", "report error", "thank you for helping us!", "top tutorials", "top references", "top examples", "get certified", "get certified!", "spaces", "upgrade", "w3schools is optimized for learning and training."],
+    "skip_headings": ["example", "try it yourself", "try it yourself »"]
+  },
+  "parts": {
+    "python": {"seeds": ["https://www.w3schools.com/python/default.asp"], "allowed_prefixes": ["/python/"]},
+    "javascript": {"seeds": ["https://www.w3schools.com/js/default.asp"], "allowed_prefixes": ["/js/"]},
+    "html": {"seeds": ["https://www.w3schools.com/html/default.asp"], "allowed_prefixes": ["/html/"]},
+    "css": {"seeds": ["https://www.w3schools.com/css/default.asp"], "allowed_prefixes": ["/css/"]},
+    "sql": {"seeds": ["https://www.w3schools.com/sql/default.asp"], "allowed_prefixes": ["/sql/"]},
+    "java": {"seeds": ["https://www.w3schools.com/java/default.asp"], "allowed_prefixes": ["/java/"]},
+    "cpp": {"seeds": ["https://www.w3schools.com/cpp/default.asp"], "allowed_prefixes": ["/cpp/"]},
+    "c": {"seeds": ["https://www.w3schools.com/c/index.php"], "allowed_prefixes": ["/c/"]},
+    "csharp": {"seeds": ["https://www.w3schools.com/cs/index.php"], "allowed_prefixes": ["/cs/"]},
+    "php": {"seeds": ["https://www.w3schools.com/php/default.asp"], "allowed_prefixes": ["/php/"]}
+  }
+}

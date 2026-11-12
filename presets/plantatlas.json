@@ -1,0 +1,19 @@
+{
+  "title": "Pflanzenatlas (plantatlas.bio)",
+  "type": "web",
+  "description": "Pflanzen- und Glossarseiten von plantatlas.bio als lokale Privatkopie (nur Text, keine Bilder)",
+  "language": "en",
+  "size_hint": "Laut Startseite ca. 3.000 Pflanzenseiten und ca. 1.200 Glossarbegriffe (Englisch/Russisch). Bei 2 Sekunden Pause dauert ein Vollauf mehrere Stunden.",
+  "license": "Inhalte von plantatlas.bio (nur private, lokale Nutzung)",
+  "notice": "Die Seite weist darauf hin, dass ihre Materialien nur mit Erlaubnis der Rechteinhaber verwendet werden dürfen. Du legst die Kopie ausschließlich für den privaten Gebrauch als Sicherung an: keine Weitergabe, keine Veröffentlichung, keine kommerzielle Nutzung, keine Nutzung als Trainingsdaten.",
+  "defaults": {
+    "delay_seconds": 2,
+    "max_pages": 4500
+  },
+  "parts": {
+    "alles": {
+      "seeds": ["https://plantatlas.bio/"],
+      "allowed_prefixes": ["/plants/", "/glossary/"]
+    }
+  }
+}

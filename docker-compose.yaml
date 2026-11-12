@@ -1,0 +1,165 @@
+# Julia: Ollama (GPU) + Open WebUI + Qdrant + Wissens-Service
+#
+# - Der Dienst "julia-init" lädt beim ersten Start das Sprachmodell und das Embedding-Modell und
+#   baut daraus das Ollama-Modell "julia" (mit Systemprompt aus julia/system-prompt.md).
+#   Danach beendet er sich ("Exited (0)" ist normal).
+# - Das Service-Image wird vorher auf dem Host gebaut (siehe setup.sh):
+#     docker build -t julia-service:1.0 <Projektordner>/service
+#   Darum gibt es hier bewusst keinen "build:"-Abschnitt (Dockhand-Build-Kontext-Problem).
+# - Variablen kommen aus .env (siehe .env.example). In Dockhand den Inhalt der .env in den
+#   Umgebungsvariablen des Stacks hinterlegen.
+
+name: julia
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: julia-ollama
+    restart: unless-stopped
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+      # Standard-Kontext für alle Clients (auch Open WebUI). Zu klein = Treffer werden abgeschnitten.
+      OLLAMA_CONTEXT_LENGTH: ${NUM_CTX:-8192}
+    volumes:
+      - ${PROJECT_DIR:?PROJECT_DIR fehlt - setup.sh trägt es in .env ein}/data/ollama:/root/.ollama
+    ports:
+      # Nur lokal auf dem Server erreichbar (nicht im LAN).
+      - "127.0.0.1:${OLLAMA_HOST_PORT:-11434}:11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+    networks:
+      julia-net:
+        aliases:
+          - ollama
+
+  julia-init:
+    # Einmaliger Helfer: lädt die Modelle und erzeugt das Modell "julia".
+    image: ollama/ollama:latest
+    container_name: julia-init
+    restart: "no"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      LLM_MODEL: ${OLLAMA_MODEL:-qwen3:14b}
+      EMB_MODEL: ${EMBED_MODEL:-bge-m3}
+      JULIA_MODEL: ${JULIA_MODEL:-julia}
+      NUM_CTX: ${NUM_CTX:-8192}
+      JULIA_THINK: ${JULIA_THINK:-false}
+    volumes:
+      - ${PROJECT_DIR:?PROJECT_DIR fehlt - setup.sh trägt es in .env ein}/julia:/julia:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        ollama pull "$$LLM_MODEL"
+        ollama pull "$$EMB_MODEL"
+        {
+          echo "FROM $$LLM_MODEL"
+          echo "PARAMETER num_ctx $$NUM_CTX"
+          echo "PARAMETER temperature 0.5"
+          printf 'SYSTEM """\n'
+          [ "$$JULIA_THINK" = "true" ] || echo "/no_think"
+          cat /julia/system-prompt.md
+          printf '\n"""\n'
+        } > /tmp/Modelfile
+        ollama create "$$JULIA_MODEL" -f /tmp/Modelfile
+        echo "Fertig: Modell $$JULIA_MODEL ist bereit."
+    networks:
+      - julia-net
+
+  qdrant:
+    image: ${QDRANT_IMAGE:-qdrant/qdrant:latest}
+    container_name: julia-qdrant
+    restart: unless-stopped
+    volumes:
+      - ${PROJECT_DIR:?PROJECT_DIR fehlt - setup.sh trägt es in .env ein}/data/qdrant:/qdrant/storage
+    networks:
+      - julia-net
+
+  julia-service:
+    image: julia-service:1.0
+    container_name: julia-service
+    restart: unless-stopped
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      EMBED_MODEL: ${EMBED_MODEL:-bge-m3}
+      QDRANT_URL: http://qdrant:6333
+      DATA_DIR: /data
+      SKILLS_DIR: /skills
+      PRESETS_DIR: /presets
+      CRAWLER_CONTACT: ${CRAWLER_CONTACT:-}
+      HARD_MAX_PAGES: ${HARD_MAX_PAGES:-5000}
+      MIN_CRAWL_DELAY: ${MIN_CRAWL_DELAY:-2}
+      SEARCH_MIN_SCORE: ${SEARCH_MIN_SCORE:-0.35}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ${PROJECT_DIR:?PROJECT_DIR fehlt - setup.sh trägt es in .env ein}/data/service:/data
+      - ${PROJECT_DIR:?PROJECT_DIR fehlt - setup.sh trägt es in .env ein}/skills:/skills:ro
+      - ${PROJECT_DIR:?PROJECT_DIR fehlt - setup.sh trägt es in .env ein}/presets:/presets:ro
+    depends_on:
+      - qdrant
+      - ollama
+    # Kein Host-Port nötig (nur Open WebUI greift über das Docker-Netz zu).
+    # Zum Debuggen auskommentieren (nur lokal erreichbar):
+    # ports:
+    #   - "127.0.0.1:8090:8090"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=8)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - julia-net
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: julia-webui
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    ports:
+      - "${WEBUI_PORT:-3001}:8080"
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?WEBUI_SECRET_KEY fehlt - setup.sh erzeugt es in .env}
+      WEBUI_NAME: Julia
+      ENABLE_SIGNUP: ${WEBUI_ENABLE_SIGNUP:-true}
+      ENABLE_OPENAI_API: "false"
+      # Dokument-Uploads im Chat: Embeddings über Ollama statt HuggingFace-Download.
+      RAG_EMBEDDING_ENGINE: ollama
+      RAG_EMBEDDING_MODEL: ${EMBED_MODEL:-bge-m3}
+      DEFAULT_MODELS: ${JULIA_MODEL:-julia}
+      # Websuche. Hinweis: Open WebUI übernimmt diese Werte nur beim ERSTEN Start; was später im
+      # Admin-Panel gespeichert wird, hat Vorrang.
+      ENABLE_WEB_SEARCH: ${WEBUI_ENABLE_WEB_SEARCH:-true}
+      WEB_SEARCH_ENGINE: ${WEBUI_WEB_SEARCH_ENGINE:-duckduckgo}
+      WEB_SEARCH_RESULT_COUNT: ${WEBUI_WEB_SEARCH_RESULT_COUNT:-3}
+      WEB_SEARCH_CONCURRENT_REQUESTS: "1"
+      BYPASS_WEB_SEARCH_EMBEDDING_AND_RETRIEVAL: ${WEBUI_WEB_SEARCH_BYPASS_EMBEDDING:-true}
+      ANONYMIZED_TELEMETRY: "false"
+      DO_NOT_TRACK: "true"
+      SCARF_NO_ANALYTICS: "true"
+    volumes:
+      - ${PROJECT_DIR:?PROJECT_DIR fehlt - setup.sh trägt es in .env ein}/data/open-webui:/app/backend/data
+    networks:
+      - julia-net
+
+networks:
+  julia-net:
+    name: julia-net
