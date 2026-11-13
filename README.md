@@ -3,7 +3,7 @@
 Eine kleine, freundliche KI für den Alltag, die schrittweise Wissensdatenbanken aufbaut (W3Schools, Wikipedia, Pflanzenatlas) und dich bei Projekten unterstützt.
 
 ```
-Open WebUI  ──►  Ollama-Modell "julia" (qwen3:14b + kurzer Systemprompt)
+Open WebUI  ──►  Ollama-Modell "julia" (qwen3:4b + kurzer Systemprompt)
      │
      └─ Werkzeuge ──►  julia-service (FastAPI)  ──►  Qdrant (eine Collection je Wissensdatenbank)
                          ├─ skills/    kurze Arbeitsanleitungen, die Julia bei Bedarf liest
@@ -14,12 +14,12 @@ Der Service erledigt das Deterministische (crawlen, zerlegen, einbetten, suchen)
 
 ## Installation
 
-Voraussetzungen: Linux-Server mit Docker, NVIDIA-GPU mit NVIDIA Container Toolkit (für `qwen3:14b` etwa 12 GB VRAM).
+Voraussetzungen: Linux-Server mit Docker, NVIDIA-GPU mit NVIDIA Container Toolkit. Das Standardmodell `qwen3:4b` passt komplett in 6 GB VRAM (z. B. RTX 2060).
 
 1. ZIP entpacken (z. B. nach `/Projekte/Festplatten/int0SSD0`) und in den Ordner wechseln.
 2. `./setup.sh` ausführen. Es legt `.env` an, fragt nach einem Crawler-Kontakt (E-Mail oder URL) und baut das Image `julia-service:1.0`.
 3. `docker compose --env-file .env up -d` (oder in Dockhand: Compose-Inhalt einfügen, Inhalt der `.env` als Umgebungsvariablen eintragen).
-4. `docker logs -f julia-init` abwarten, bis dort „Fertig: Modell julia ist bereit.“ steht (Download rund 10 GB).
+4. `docker logs -f julia-init` abwarten, bis dort „Fertig: Modell julia ist bereit.“ steht (Download rund 3 GB).
 
 Open WebUI: `http://<server-ip>:3001`
 
@@ -61,7 +61,7 @@ Sie liest das passende Skill, legt die Datenbank an und macht einen **Plan** (ro
 
 ## Modell wechseln
 
-In `.env` `OLLAMA_MODEL` ändern (z. B. `qwen3:8b` bei weniger VRAM), dann `docker compose --env-file .env up -d --force-recreate julia-init`. Nach einem Wechsel von `EMBED_MODEL` müssen Wissensdatenbanken neu angelegt werden (andere Vektorgröße).
+Passende Modelle je nach VRAM: 6 GB `qwen3:4b` (Standard, komplett auf der GPU), 8 GB `qwen3:8b`, ab 12 GB `qwen3:14b`. `qwen3:8b` läuft auf 6 GB nur teilweise auf der GPU und ist deutlich langsamer. In `.env` `OLLAMA_MODEL` ändern, dann `docker compose --env-file .env up -d --force-recreate julia-init`. Nach einem Wechsel von `EMBED_MODEL` müssen Wissensdatenbanken neu angelegt werden (andere Vektorgröße).
 
 ## Fehlersuche
 
@@ -76,7 +76,7 @@ In `.env` `OLLAMA_MODEL` ändern (z. B. `qwen3:8b` bei weniger VRAM), dann `dock
 
 ## Ehrliche Grenzen
 
-- Julia mit einem 14B-Modell führt Schritt für Schritt durch Aufgaben, arbeitet aber nicht vollständig allein. Bei Unklarem fragt sie nach.
+- Julia mit einem kleinen Modell (4B bis 14B) führt Schritt für Schritt durch Aufgaben, arbeitet aber nicht vollständig allein. Bei Unklarem fragt sie nach.
 - Dateien ändern oder Programme ausführen kann sie nur mit zusätzlichen Werkzeugen. Das Skill „Projekt leiten“ arbeitet im Chat.
 - Der Pflanzenatlas wird nur als Text gesichert (keine Bilder). Die Vorlage ist nach den Angaben der Startseite aufgebaut und wurde nicht gegen die echte Seite getestet. Der Plan zeigt vorher, was gefunden wird.
 - Antworten zu Giftigkeit oder Essbarkeit von Pflanzen immer selbst gegenprüfen.

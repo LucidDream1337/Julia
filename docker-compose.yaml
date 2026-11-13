@@ -22,6 +22,9 @@ services:
       OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
       # Standard-Kontext für alle Clients (auch Open WebUI). Zu klein = Treffer werden abgeschnitten.
       OLLAMA_CONTEXT_LENGTH: ${NUM_CTX:-8192}
+      # Spart VRAM (wichtig bei 6-8 GB): Flash Attention + 8-Bit-KV-Cache halbiert den Kontext-Speicher.
+      OLLAMA_FLASH_ATTENTION: ${OLLAMA_FLASH_ATTENTION:-1}
+      OLLAMA_KV_CACHE_TYPE: ${OLLAMA_KV_CACHE_TYPE:-q8_0}
     volumes:
       - ${PROJECT_DIR:?PROJECT_DIR fehlt - setup.sh trägt es in .env ein}/data/ollama:/root/.ollama
     ports:
@@ -55,7 +58,7 @@ services:
         condition: service_healthy
     environment:
       OLLAMA_HOST: http://ollama:11434
-      LLM_MODEL: ${OLLAMA_MODEL:-qwen3:14b}
+      LLM_MODEL: ${OLLAMA_MODEL:-qwen3:4b}
       EMB_MODEL: ${EMBED_MODEL:-bge-m3}
       JULIA_MODEL: ${JULIA_MODEL:-julia}
       NUM_CTX: ${NUM_CTX:-8192}
