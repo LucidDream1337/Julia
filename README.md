@@ -28,9 +28,10 @@ Open WebUI: `http://<server-ip>:3001`
 1. **Konto anlegen.** Das erste Konto wird Admin. Danach in `.env` `WEBUI_ENABLE_SIGNUP=false` setzen und den Stack neu starten.
 2. **Tool-Server verbinden:** Admin-Bereich → Einstellungen → Externe Tools → „+“. URL `http://julia-service:8090`, Pfad `openapi.json`, Authentifizierung keine. Speichern. Es erscheint „Julia Wissen“.
 3. **Modell `julia` einstellen:** Admin-Bereich → Modelle → julia:
-   - Werkzeuge: „Julia Wissen“ anhaken (damit es in jedem Chat aktiv ist)
+   - Werkzeuge: „Julia Wissen“ anhaken (damit es in jedem Chat aktiv ist). Ohne diesen Haken sieht Julia ihre Werkzeuge nicht.
    - Fähigkeiten: Websuche aktivieren, und unter Standard-Funktionen ebenfalls Websuche anhaken
-   - Erweiterte Parameter: Funktionsaufruf auf **Nativ** stellen (Bezeichnung kann je nach Version leicht abweichen)
+   - Eingebaute Werkzeuge: **Notizen, Wissen, Erinnerung, Chatverlauf und Kanäle ausschalten** (je Modell abschaltbar). Sonst greift Julia statt zu unseren Werkzeugen zu Notizen oder zum eingebauten Wissen von Open WebUI.
+   - Erweiterte Parameter: Funktionsaufruf auf **Nativ** (ist per Compose vorbelegt, bitte kontrollieren)
 4. Im Chat das Modell **julia** wählen.
 
 Die Websuche (DuckDuckGo) ist in der Compose-Datei vorkonfiguriert, Open WebUI übernimmt solche Werte aber nur beim ersten Start. Was du im Admin-Panel speicherst, hat danach Vorrang.
@@ -39,7 +40,7 @@ Die Websuche (DuckDuckGo) ist in der Compose-Datei vorkonfiguriert, Open WebUI �
 
 Schreib ihr zum Beispiel:
 
-- „Welche Skills hast du?“
+- „Welche Skills hast du?“ (ruft `skills_liste` auf, ein guter Funktionstest)
 - „Lege eine Wissensdatenbank für W3Schools Python an.“
 - „Lerne Wikipedia-Artikel zur Kategorie Heilpflanze (deutsch).“
 - „Sichere den Pflanzenatlas.“
@@ -68,7 +69,8 @@ Passende Modelle je nach VRAM: 6 GB `qwen3:4b` (Standard, komplett auf der GPU),
 - Julia fragen: „Ruf service_status auf.“ (prüft Ollama, Qdrant, Embedding-Modell, Crawler-Kontakt)
 - `docker logs julia-service`, `docker logs julia-init`
 - `docker exec julia-ollama ollama ps` zeigt, ob das Modell komplett auf der GPU läuft. Steht dort nicht „100% GPU“, `NUM_CTX=4096` setzen oder ein kleineres Modell wählen.
-- Ruft Julia keine Werkzeuge auf: Funktionsaufruf auf „Nativ“ prüfen und ob „Julia Wissen“ beim Modell angehakt ist.
+- Legt Julia Notizen an oder nutzt `fetch_url` statt `wissen_anlegen`: Im Modell die eingebauten Werkzeuge Notizen/Wissen abschalten (siehe oben) und prüfen, ob „Julia Wissen“ angehakt ist. Beim ersten Satz im Chat sollte unter dem Modellnamen „Julia Wissen“ als aktives Werkzeug erscheinen.
+- Ruft Julia gar keine Werkzeuge auf: Funktionsaufruf auf „Nativ“ prüfen.
 
 ## Entwickeln
 

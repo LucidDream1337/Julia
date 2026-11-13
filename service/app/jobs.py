@@ -122,16 +122,16 @@ def _plan_wiki(cfg: dict, cap: int) -> dict:
 def start(plan_id: str, max_pages: int | None, acknowledged: bool) -> dict:
     row = db.plan_get(plan_id)
     if row is None:
-        raise BadRequest("Unbekannte plan_id. Zuerst plan_ingest ausführen und das Ergebnis mit dem Nutzer besprechen.")
+        raise BadRequest("Unbekannte plan_id. Zuerst wissen_plan ausführen und das Ergebnis mit dem Nutzer besprechen.")
     if not db.plan_is_fresh(row["created_at"]):
-        raise BadRequest("Der Plan ist veraltet. Bitte plan_ingest erneut ausführen.")
+        raise BadRequest("Der Plan ist veraltet. Bitte wissen_plan erneut ausführen.")
     plan = row["plan"]
     if plan.get("problem"):
         raise BadRequest(f"Start nicht möglich: {plan['problem']}")
     if plan.get("notice") and not acknowledged:
         raise BadRequest(
             "Bestätigung des Nutzers nötig. Lies ihm diesen Hinweis wörtlich vor, frag ausdrücklich nach "
-            f"seiner Zustimmung und rufe start_ingest dann mit acknowledged=true auf: {plan['notice']}"
+            f"seiner Zustimmung und rufe wissen_start dann mit acknowledged=true auf: {plan['notice']}"
         )
     kb = db.kb_get(row["kb"])
     if kb is None:
@@ -142,7 +142,7 @@ def start(plan_id: str, max_pages: int | None, acknowledged: bool) -> dict:
         if running:
             raise Conflict(
                 f"Es läuft bereits ein Job ({running['id']} für '{running['kb']}'). "
-                "Warte, bis er fertig ist, oder stoppe ihn mit stop_job."
+                "Warte, bis er fertig ist, oder stoppe ihn mit wissen_stopp."
             )
         job_id = db.job_create(kb["name"], cap)
         _stops[job_id] = threading.Event()

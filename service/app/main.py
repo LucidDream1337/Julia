@@ -42,7 +42,7 @@ async def _julia_error(_: Request, exc: JuliaError):
 class CreateKB(BaseModel):
     name: str = Field(description="Kurzer Name, nur Kleinbuchstaben/Ziffern/-/_ (z. B. 'w3schools-python').")
     description: str = Field("", description="Ein Satz: Wofür ist diese Wissensdatenbank?")
-    preset: str | None = Field(None, description="Name einer Vorlage aus list_presets, z. B. 'w3schools'.")
+    preset: str | None = Field(None, description="Name einer Vorlage aus wissen_vorlagen, z. B. 'w3schools'.")
     parts: list[str] | None = Field(None, description="Teilbereiche der Vorlage (z. B. ['python','sql']). Leer = alle.")
     type: str | None = Field(None, description="Nur ohne Preset: 'web' oder 'wikipedia'.")
     config: dict | None = Field(None, description="Quellen-Konfiguration bzw. Überschreibungen der Vorlage.")
@@ -53,7 +53,7 @@ class PlanReq(BaseModel):
 
 
 class IngestReq(BaseModel):
-    plan_id: str = Field(description="plan_id aus plan_ingest.")
+    plan_id: str = Field(description="plan_id aus wissen_plan.")
     max_pages: int | None = Field(None, ge=1, description="Optional kleinere Obergrenze (z. B. 10 für einen Probelauf).")
     acknowledged: bool = Field(False, description="true NUR, wenn der Nutzer den Hinweis aus dem Plan ausdrücklich bestätigt hat.")
 
@@ -101,9 +101,9 @@ def _skill_files():
     return sorted(settings.skills_dir.glob("*.md"))
 
 
-@app.get("/skills", operation_id="list_skills", summary="Verfügbare Skills (Arbeitsanleitungen) auflisten")
+@app.get("/skills", operation_id="skills_liste", summary="Verfügbare Skills (Arbeitsanleitungen) auflisten")
 def list_skills():
-    """Skills sind kurze Rezepte für wiederkehrende Aufgaben. Vor einer passenden Aufgabe mit read_skill laden."""
+    """Skills sind kurze Rezepte für wiederkehrende Aufgaben. Vor einer passenden Aufgabe mit skill_lesen laden."""
     out = []
     for path in _skill_files():
         lines = [l.strip() for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -112,25 +112,25 @@ def list_skills():
     return {"skills": out}
 
 
-@app.get("/skills/{name}", operation_id="read_skill", summary="Ein Skill vollständig lesen und befolgen")
+@app.get("/skills/{name}", operation_id="skill_lesen", summary="Ein Skill vollständig lesen und befolgen")
 def read_skill(name: str):
     """Liefert den Text des Skills. Halte dich Schritt für Schritt daran."""
     if not _SKILL_RE.match(name):
         raise BadRequest("Ungültiger Skill-Name.")
     path = settings.skills_dir / f"{name}.md"
     if not path.is_file():
-        raise NotFound(f"Skill '{name}' gibt es nicht. Verfügbare Skills mit list_skills abrufen.")
+        raise NotFound(f"Skill '{name}' gibt es nicht. Verfügbare Skills mit skills_liste abrufen.")
     return {"name": name, "content": path.read_text(encoding="utf-8")}
 
 
 # --------------------------------------------------------------------------- Wissensdatenbanken
-@app.get("/presets", operation_id="list_presets", summary="Quellen-Vorlagen (W3Schools, Wikipedia, Pflanzenatlas, ...) auflisten")
+@app.get("/presets", operation_id="wissen_vorlagen", summary="Quellen-Vorlagen (W3Schools, Wikipedia, Pflanzenatlas, ...) auflisten")
 def list_presets():
     """Zeigt fertige Vorlagen mit Teilbereichen (parts) und ob eine Bestätigung des Nutzers nötig ist."""
     return {"presets": presets.list_presets()}
 
 
-@app.get("/knowledge", operation_id="list_knowledge_bases", summary="Vorhandene Wissensdatenbanken mit Stand auflisten")
+@app.get("/knowledge", operation_id="wissen_liste", summary="Vorhandene Wissensdatenbanken mit Stand auflisten")
 def list_knowledge_bases():
     """Name, Beschreibung, Anzahl gelernter Seiten/Abschnitte und letzter Job je Wissensdatenbank."""
     out = []
@@ -149,18 +149,18 @@ def list_knowledge_bases():
     return {"knowledge_bases": out}
 
 
-@app.post("/knowledge", operation_id="create_knowledge_base", summary="Neue (leere) Wissensdatenbank anlegen")
+@app.post("/knowledge", operation_id="wissen_anlegen", summary="Neue (leere) Wissensdatenbank anlegen")
 def create_knowledge_base(req: CreateKB):
-    """Legt die Wissensdatenbank samt Quellen-Konfiguration an. Es wird noch nichts heruntergeladen (dafür plan_ingest, dann start_ingest)."""
+    """Legt die Wissensdatenbank samt Quellen-Konfiguration an. Es wird noch nichts heruntergeladen (dafür wissen_plan, dann wissen_start)."""
     name = presets.validate_name(req.name)
     if db.kb_get(name):
         raise BadRequest(f"Eine Wissensdatenbank '{name}' gibt es schon.")
     typ, cfg = presets.build_config(req.preset, req.parts, req.type, req.config)
     db.kb_create(name, req.description.strip(), store.collection_name(name), req.preset, typ, cfg)
-    return {"created": name, "type": typ, "next": "plan_ingest ausführen und den Plan mit dem Nutzer besprechen."}
+    return {"created": name, "type": typ, "next": "wissen_plan ausführen und den Plan mit dem Nutzer besprechen."}
 
 
-@app.delete("/knowledge/{name}", operation_id="delete_knowledge_base", summary="Wissensdatenbank samt Inhalt löschen")
+@app.delete("/knowledge/{name}", operation_id="wissen_loeschen", summary="Wissensdatenbank samt Inhalt löschen")
 def delete_knowledge_base(name: str, confirm: str = ""):
     """UNWIDERRUFLICH. Nur nach ausdrücklichem Wunsch des Nutzers; confirm muss exakt dem Namen entsprechen."""
     kb = db.kb_get(name)
@@ -170,32 +170,32 @@ def delete_knowledge_base(name: str, confirm: str = ""):
         raise BadRequest(f"Zum Löschen confirm='{name}' angeben, nachdem der Nutzer das ausdrücklich bestätigt hat.")
     running = db.job_running()
     if running and running["kb"] == name:
-        raise BadRequest("Für diese Wissensdatenbank läuft gerade ein Job. Erst stop_job.")
+        raise BadRequest("Für diese Wissensdatenbank läuft gerade ein Job. Erst wissen_stopp.")
     store.delete_collection(kb["collection"])
     db.kb_delete(name)
     return {"deleted": name}
 
 
 # --------------------------------------------------------------------------- Aufnahme
-@app.post("/knowledge/{name}/plan", operation_id="plan_ingest", summary="Trockenlauf: Umfang, robots.txt und Dauer prüfen (lädt nichts)")
+@app.post("/knowledge/{name}/plan", operation_id="wissen_plan", summary="Trockenlauf: Umfang, robots.txt und Dauer prüfen (lädt nichts)")
 def plan_ingest(name: str, req: PlanReq):
     """Prüft Erreichbarkeit und robots.txt und schätzt Seitenzahl und Dauer. Ergebnis dem Nutzer erklären, dann auf sein Ja warten."""
     return jobs.make_plan(name, req.max_pages)
 
 
-@app.post("/ingest", operation_id="start_ingest", summary="Befüllen starten (nur nach plan_ingest UND Ja des Nutzers)")
+@app.post("/ingest", operation_id="wissen_start", summary="Befüllen starten (nur nach wissen_plan UND Ja des Nutzers)")
 def start_ingest(req: IngestReq):
-    """Startet den Hintergrundlauf. Den Fortschritt mit job_status abfragen."""
+    """Startet den Hintergrundlauf. Den Fortschritt mit wissen_status abfragen."""
     job = jobs.start(req.plan_id, req.max_pages, req.acknowledged)
-    return {"job": job, "next": "Mit job_status den Fortschritt abfragen."}
+    return {"job": job, "next": "Mit wissen_status den Fortschritt abfragen."}
 
 
-@app.get("/jobs", operation_id="list_jobs", summary="Letzte Jobs auflisten")
+@app.get("/jobs", operation_id="wissen_jobs", summary="Letzte Jobs auflisten")
 def list_jobs(kb: str | None = None):
     return {"jobs": db.job_list(kb, 5)}
 
 
-@app.get("/jobs/{job_id}", operation_id="job_status", summary="Fortschritt eines Jobs abfragen")
+@app.get("/jobs/{job_id}", operation_id="wissen_status", summary="Fortschritt eines Jobs abfragen")
 def job_status(job_id: str):
     """Status (running/done/stopped/failed/interrupted), Zähler und aktuelle Seite."""
     job = db.job_get(job_id)
@@ -204,19 +204,19 @@ def job_status(job_id: str):
     return job
 
 
-@app.post("/jobs/{job_id}/stop", operation_id="stop_job", summary="Laufenden Job sauber stoppen")
+@app.post("/jobs/{job_id}/stop", operation_id="wissen_stopp", summary="Laufenden Job sauber stoppen")
 def stop_job(job_id: str):
     """Der Job beendet die aktuelle Seite und hält an. Bereits Gelerntes bleibt erhalten."""
-    return {"job": jobs.stop(job_id), "note": "Stopp angefordert; Status in einigen Sekunden mit job_status prüfen."}
+    return {"job": jobs.stop(job_id), "note": "Stopp angefordert; Status in einigen Sekunden mit wissen_status prüfen."}
 
 
 # --------------------------------------------------------------------------- Suche
-@app.post("/search", operation_id="search_knowledge", summary="In den Wissensdatenbanken suchen")
+@app.post("/search", operation_id="wissen_suche", summary="In den Wissensdatenbanken suchen")
 def search_knowledge(req: SearchReq):
     """Liefert die passendsten Textauszüge mit Quelle (url). Antworte nur anhand der Treffer und nenne die Quelle."""
     targets = [db.kb_get(req.kb)] if req.kb else db.kb_list()
     if req.kb and targets[0] is None:
-        raise NotFound(f"Wissensdatenbank '{req.kb}' gibt es nicht. Vorhandene mit list_knowledge_bases abrufen.")
+        raise NotFound(f"Wissensdatenbank '{req.kb}' gibt es nicht. Vorhandene mit wissen_liste abrufen.")
     if not targets:
         return {"results": [], "hint": "Es gibt noch keine Wissensdatenbank. Biete an, eine anzulegen."}
     vector = embed.get().embed_query(req.query)

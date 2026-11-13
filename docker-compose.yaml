@@ -148,6 +148,8 @@ services:
       RAG_EMBEDDING_ENGINE: ollama
       RAG_EMBEDDING_MODEL: ${EMBED_MODEL:-bge-m3}
       DEFAULT_MODELS: ${JULIA_MODEL:-julia}
+      # Werkzeugaufrufe direkt vom Modell ("Nativ"). Gilt wie die Websuche nur beim ersten Start.
+      DEFAULT_MODEL_PARAMS: '{"function_calling": "native"}'
       # Websuche. Hinweis: Open WebUI übernimmt diese Werte nur beim ERSTEN Start; was später im
       # Admin-Panel gespeichert wird, hat Vorrang.
       ENABLE_WEB_SEARCH: ${WEBUI_ENABLE_WEB_SEARCH:-true}
