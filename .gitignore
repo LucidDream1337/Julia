@@ -1,9 +1,0 @@
-.env
-data/ollama/*
-data/qdrant/*
-data/open-webui/*
-data/service/*
-!data/*/.gitkeep
-__pycache__/
-*.pyc
-.pytest_cache/

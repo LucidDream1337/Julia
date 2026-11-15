@@ -1,0 +1,88 @@
+# Private, lernende KI – alles läuft und speichert in diesem Ordner
+# (/Projekte/Festplatten/int0SSD0/Julia). Alle Daten liegen unter ./data
+name: julia
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m
+      OLLAMA_CONTEXT_LENGTH: "8192"
+    volumes:
+      - ./data/ollama:/root/.ollama
+    networks: [ai]
+    # Optional NVIDIA-GPU (nvidia-container-toolkit nötig) – Block einkommentieren:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # Lädt einmalig Chat- und Embedding-Modell, danach beendet sich der Container
+  ollama-init:
+    image: ollama/ollama:latest
+    restart: "no"
+    depends_on: [ollama]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "until ollama list >/dev/null 2>&1; do sleep 2; done;
+       ollama pull ${CHAT_MODEL:-qwen3:4b} &&
+       ollama pull ${EMBED_MODEL:-nomic-embed-text}"
+    networks: [ai]
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+    networks: [ai]
+
+  agent:
+    build: ./agent
+    restart: unless-stopped
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+      qdrant:
+        condition: service_started
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      QDRANT_URL: http://qdrant:6333
+      CHAT_MODEL: ${CHAT_MODEL:-qwen3:4b}
+      EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}
+      AGENT_API_KEY: ${AGENT_API_KEY:?bitte in .env setzen}
+      AGENT_ALLOW_WEB: ${AGENT_ALLOW_WEB:-false}
+      AGENT_THINK: ${AGENT_THINK:-false}
+      DATA_DIR: /data
+    volumes:
+      - ./data/agent:/data
+    networks: [ai]
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    depends_on: [agent]
+    ports:
+      - "127.0.0.1:3000:8080"   # nur lokal erreichbar; für LAN: "3000:8080"
+    environment:
+      ENABLE_OLLAMA_API: "false"
+      OPENAI_API_BASE_URL: http://agent:8000/v1
+      OPENAI_API_KEY: ${AGENT_API_KEY}
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?bitte in .env setzen}
+      WEBUI_NAME: Julia
+    volumes:
+      - ./data/open-webui:/app/backend/data
+    networks: [ai]
+
+networks:
+  ai:
+    name: julia-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.40.0/24
