@@ -8,18 +8,21 @@ services:
     restart: unless-stopped
     environment:
       OLLAMA_KEEP_ALIVE: 30m
-      OLLAMA_CONTEXT_LENGTH: "8192"
+      OLLAMA_CONTEXT_LENGTH: "12288"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
     volumes:
       - ./data/ollama:/root/.ollama
     networks: [ai]
-    # Optional NVIDIA-GPU (nvidia-container-toolkit nötig) – Block einkommentieren:
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
+    # NVIDIA-GPU (benötigt nvidia-container-toolkit auf dem Host).
+    # Ohne NVIDIA-GPU: den deploy-Block und die beiden NVIDIA_-Variablen entfernen.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   # Lädt einmalig Chat- und Embedding-Modell, danach beendet sich der Container
   ollama-init:
@@ -29,10 +32,16 @@ services:
     environment:
       OLLAMA_HOST: http://ollama:11434
     entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "until ollama list >/dev/null 2>&1; do sleep 2; done;
-       ollama pull ${CHAT_MODEL:-qwen3:4b} &&
-       ollama pull ${EMBED_MODEL:-nomic-embed-text}"
+    command:
+      - |
+        until ollama list >/dev/null 2>&1; do sleep 2; done
+        for m in ${CHAT_MODEL:-qwen3:4b} ${EMBED_MODEL:-nomic-embed-text}; do
+          until ollama pull "$$m" && ollama show "$$m" >/dev/null 2>&1; do
+            echo "Download von $$m fehlgeschlagen, neuer Versuch in 15 Sekunden"
+            sleep 15
+          done
+        done
+        echo "Alle Modelle vorhanden"
     networks: [ai]
 
   qdrant:
@@ -58,6 +67,9 @@ services:
       AGENT_API_KEY: ${AGENT_API_KEY:?bitte in .env setzen}
       AGENT_ALLOW_WEB: ${AGENT_ALLOW_WEB:-false}
       AGENT_THINK: ${AGENT_THINK:-false}
+      AGENT_ALLOW_DELETE: ${AGENT_ALLOW_DELETE:-true}
+      AGENT_TRASH_DAYS: ${AGENT_TRASH_DAYS:-14}
+      AGENT_NUM_CTX: ${AGENT_NUM_CTX:-12288}
       DATA_DIR: /data
     volumes:
       - ./data/agent:/data
@@ -68,7 +80,7 @@ services:
     restart: unless-stopped
     depends_on: [agent]
     ports:
-      - "127.0.0.1:3000:8080"   # nur lokal erreichbar; für LAN: "3000:8080"
+      - "127.0.0.1:3001:8080"   # nur lokal erreichbar; für LAN: "3001:8080"
     environment:
       ENABLE_OLLAMA_API: "false"
       OPENAI_API_BASE_URL: http://agent:8000/v1
