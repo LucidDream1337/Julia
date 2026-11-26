@@ -70,6 +70,7 @@ services:
       AGENT_ALLOW_DELETE: ${AGENT_ALLOW_DELETE:-true}
       AGENT_TRASH_DAYS: ${AGENT_TRASH_DAYS:-14}
       AGENT_NUM_CTX: ${AGENT_NUM_CTX:-12288}
+      AGENT_MAX_STEPS: ${AGENT_MAX_STEPS:-8}
       DATA_DIR: /data
     volumes:
       - ./data/agent:/data
@@ -80,7 +81,7 @@ services:
     restart: unless-stopped
     depends_on: [agent]
     ports:
-      - "127.0.0.1:3001:8080"   # nur lokal erreichbar; für LAN: "3001:8080"
+      - "0.0.0.0:3001:8080"   # nur lokal erreichbar; für LAN: "3001:8080"
     environment:
       ENABLE_OLLAMA_API: "false"
       OPENAI_API_BASE_URL: http://agent:8000/v1

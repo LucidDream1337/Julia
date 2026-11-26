@@ -31,9 +31,9 @@ for _d in (SKILLS, HIST, TRASH):
 REGISTRY = DATA / "kbs.json"
 LOG = DATA / "changelog.md"
 SEED = pathlib.Path(__file__).parent / "seed_skills"
-MAX_STEPS = 8
+MAX_STEPS = max(1, int(os.getenv("AGENT_MAX_STEPS", "8")))
 MODEL_ID = "julia"
-VERSION = "5"
+VERSION = "6"
 
 qdrant = QdrantClient(url=QDRANT)
 http = httpx.Client(timeout=300)
@@ -523,7 +523,7 @@ def status() -> str:
         f"Julia Agent v{VERSION}",
         f"Chat-Modell: {CHAT_MODEL} | Embedding: {EMBED_MODEL}",
         f"Löschen erlaubt: {'ja' if ALLOW_DELETE else 'NEIN (AGENT_ALLOW_DELETE=false)'} | "
-        f"Webzugriff: {'ja' if ALLOW_WEB else 'nein'} | Papierkorb: {TRASH_DAYS} Tage",
+        f"Webzugriff: {'ja' if ALLOW_WEB else 'nein'} | Papierkorb: {TRASH_DAYS} Tage | Werkzeugschritte: {MAX_STEPS}",
         f"Knowledge Bases: {len(reg) - trashed} aktiv, {trashed} im Papierkorb | Skills: {len(list(SKILLS.glob('*.md')))}",
     ]
     try:
@@ -840,7 +840,8 @@ def run_agent(messages: list[dict]) -> str:
             except Exception as e:
                 result = f"Fehler: {e}"
             msgs.append({"role": "tool", "tool_name": fn["name"], "content": str(result)})
-    return "Abbruch: zu viele Werkzeugschritte."
+    return (f"Abbruch nach {MAX_STEPS} Werkzeugschritten. Bei größeren Aufgaben erhöhe AGENT_MAX_STEPS "
+            "in der .env (danach: docker compose up -d agent) oder teile die Aufgabe auf.")
 
 
 # ---------- OpenAI-kompatible API ----------

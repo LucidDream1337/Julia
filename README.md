@@ -23,7 +23,7 @@ Browser ──> Open WebUI ──> Agent ──> Ollama (qwen3:4b, nomic-embed-t
 ```
 
 Alle Container hängen im Netz `julia-net` (172.28.40.0/24). Nach außen ist nur Open WebUI
-erreichbar, und zwar standardmäßig nur über `127.0.0.1:3001`. Open WebUI spricht bewusst nicht
+erreichbar, und zwar standardmäßig nur über `0.0.0.0:3001`. Open WebUI spricht bewusst nicht
 direkt mit Ollama, sondern ausschließlich mit dem Agent.
 
 ## Voraussetzungen
@@ -165,13 +165,13 @@ Das funktioniert zuverlässig, auch wenn das kleine Modell ein Werkzeug nicht vo
 | `AGENT_ALLOW_DELETE` | `true` | Darf Julia löschen (Einträge, KBs, Skills)? |
 | `AGENT_TRASH_DAYS` | `14` | Tage bis der Papierkorb endgültig geleert wird |
 | `AGENT_NUM_CTX` | `12288` | Kontextgröße des Modells (mehr = mehr RAM) |
+| `AGENT_MAX_STEPS` | `8` | Maximale Werkzeugschritte pro Antwort. Jeder Schritt ist ein Modellaufruf, höhere Werte erlauben größere Aufgaben, machen Antworten aber länger |
 
 Wichtig: Nach dem Anlegen von Knowledge Bases `EMBED_MODEL` nicht mehr ändern. Die Vektorgröße
 ist pro KB fest, bei einem anderen Embedding-Modell musst du die KBs neu anlegen.
 
 Weitere Einstellungen direkt in `docker-compose.yml`:
 
-- **Zugriff aus dem LAN:** Port bei `open-webui` von `127.0.0.1:3001:8080` auf `3001:8080` ändern.
 - **GPU:** NVIDIA ist standardmäßig aktiv (`deploy`-Block und `NVIDIA_*`-Variablen bei `ollama`). Ohne NVIDIA-GPU diese entfernen.
 - **Kontextlänge:** `AGENT_NUM_CTX` in `.env` (und `OLLAMA_CONTEXT_LENGTH` bei `ollama`).
 
