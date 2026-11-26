@@ -10,7 +10,7 @@ services:
       OLLAMA_KEEP_ALIVE: 30m
       OLLAMA_CONTEXT_LENGTH: "12288"
       NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      NVIDIA_DRIVER_CAPABILITIES: all
     volumes:
       - ./data/ollama:/root/.ollama
     networks: [ai]
