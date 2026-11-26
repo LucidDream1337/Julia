@@ -22,7 +22,8 @@ services:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [gpu][compute][utility][graphics][video][display]
+
 
   # Lädt einmalig Chat- und Embedding-Modell, danach beendet sich der Container
   ollama-init:
